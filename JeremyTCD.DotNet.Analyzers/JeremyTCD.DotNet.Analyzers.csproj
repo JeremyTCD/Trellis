@@ -1,18 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
-      <IncludeBuildOutput>false</IncludeBuildOutput>
-    <CodeAnalysisRuleSet>..\ClassLibraryProject.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard1.6</TargetFramework>
+        <AssemblyName>JeremyTCD.DotNet.Analyzers</AssemblyName>
+        <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <CodeAnalysisRuleSet>..\ClassLibraryProject.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
-  </ItemGroup>
+    <PropertyGroup>
+        <PackageId>JeremyTCD.DotNet.Analyzers</PackageId>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+        <Version>0.2.0</Version>
+        <Authors>JeremyTCD</Authors>
+        <Copyright>Copyright © JeremyTCD 2017</Copyright>
+        <PackageLicenseUrl>https://github.com/JeremyTCD/DotNet.Analyzers/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/JeremyTCD/DotNet.Analyzers</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/JeremyTCD/DotNet.Analyzers</RepositoryUrl>
+        <RepositoryType>GitHub</RepositoryType>
+        <PackageTags>Roslyn Analyzer</PackageTags>
+        <NeutralLanguage>English</NeutralLanguage>
+        <Description>A set of Roslyn analyzers.</Description>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.3.2" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="tools" />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.3.2" />
+    </ItemGroup>
 
 </Project>

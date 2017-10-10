@@ -43,7 +43,6 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            // TODO publish package locally, use in commandline
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
