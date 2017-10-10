@@ -49,9 +49,13 @@ namespace JeremyTCD.DotNet.Analyzers
             LocalDeclarationStatementSyntax localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
 
             // Return if not in a test class
-            NamespaceDeclarationSyntax namespaceDeclaration = localDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
-            QualifiedNameSyntax namespaceName = namespaceDeclaration?.Name as QualifiedNameSyntax;
-            if (namespaceName?.Right.Identifier.ValueText != "Tests")
+            if (!localDeclaration.Ancestors().OfType<CompilationUnitSyntax>().First().Usings.Any(u => u.Name.ToString() == "Xunit"))
+            {
+                return;
+            }
+
+            // Return if local variable is a stub
+            if (localDeclaration.Declaration.Variables.First().Identifier.ToString().StartsWith("stub"))
             {
                 return;
             }
@@ -70,7 +74,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            // Return if class under test does not exist
+
             ClassDeclarationSyntax testClassDeclaration = localDeclaration.FirstAncestorOrSelf<ClassDeclarationSyntax>();
             if(testClassDeclaration == null)
             {
@@ -80,13 +84,9 @@ namespace JeremyTCD.DotNet.Analyzers
                 Replace("UnitTests", string.Empty).
                 Replace("IntegrationTests", string.Empty).
                 Replace("EndToEndTests", string.Empty);
-            INamedTypeSymbol classUnderTestSymbol = context.Compilation.GetTypeByMetadataName($"{namespaceName.Left.ToString()}.{classUnderTestName}");
-            if (classUnderTestSymbol == null)
-            {
-                return;
-            }
+            ISymbol classUnderTestSymbol = SymbolHelper.TryGetSymbol(classUnderTestName, context.Compilation.GlobalNamespace);
 
-            // Add diagnostic if type has an interface in the assembly under test
+            // Add diagnostic if local variable's type has an interface in the assembly under test
             foreach (VariableDeclaratorSyntax variableDeclarator in localDeclaration.Declaration.Variables)
             {
                 EqualsValueClauseSyntax initializer = variableDeclarator.Initializer;

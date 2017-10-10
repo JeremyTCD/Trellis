@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -20,7 +19,7 @@ namespace JeremyTCD.DotNet.Analyzers
         public const string DiagnosticId = "JA1003";
 
         private const string Title = "Test class names must be correctly formatted.";
-        private const string MessageFormat = "Test class name must begin with class under test.";
+        private const string MessageFormat = "Test class name must begin with class under test; {0} is not the name of a testable class.";
         private const string Description = "A test class's name is incorrectly formatted.";
         private const string HelpLink = "";
 
@@ -34,6 +33,7 @@ namespace JeremyTCD.DotNet.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.CompilationUnit);
+            context.EnableConcurrentExecution();
         }
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
@@ -50,37 +50,10 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
             string className = classDeclaration.Identifier.ToString();
             string classUnderTestName = className.Replace("UnitTests", "").Replace("IntegrationTests", "").Replace("EndToEndTests", "");
-            if (classUnderTestName == className || !Exists(classUnderTestName, context.Compilation.GlobalNamespace))
+            if (classUnderTestName == className || SymbolHelper.TryGetSymbol(classUnderTestName, context.Compilation.GlobalNamespace) == null)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation(), classUnderTestName));
             }
-        }
-
-        public bool Exists(string classUnderTestName, INamespaceOrTypeSymbol symbol)
-        {
-            if (symbol is ITypeSymbol)
-            {
-                if (symbol.Name.EndsWith(classUnderTestName))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            IEnumerable<INamespaceOrTypeSymbol> symbols = (symbol as INamespaceSymbol).GetMembers();
-
-            foreach (INamespaceOrTypeSymbol child in symbols)
-            {
-                if (Exists(classUnderTestName, child))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

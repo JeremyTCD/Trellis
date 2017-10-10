@@ -29,14 +29,18 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
-
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    nameof(JA1000CodeFixProvider),
-                    cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                    nameof(JA1000CodeFixProvider)),
-                diagnostic);
+            foreach (Diagnostic diagnostic in context.Diagnostics)
+            {
+                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
+                {
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                        nameof(JA1000CodeFixProvider),
+                        cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
+                        nameof(JA1000CodeFixProvider)),
+                        diagnostic);
+                }
+            }
 
             return Task.FromResult(default(object));
         }

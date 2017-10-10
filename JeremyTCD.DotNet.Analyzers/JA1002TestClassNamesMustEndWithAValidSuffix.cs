@@ -5,18 +5,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
-    /// <summary>
-    /// A test class' name does not end with a valid suffix.
-    /// </summary>
-    /// <remarks>
-    /// <para>A violation of this rule occurs if a test class' name does not end with a valid suffix.</para>
-    /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class JA1002TestClassNamesMustEndWithAValidSuffix : DiagnosticAnalyzer
     {
@@ -54,14 +47,13 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Add diagnostics
-            foreach (ClassDeclarationSyntax classDeclaration in compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>())
-            {
-                string className = classDeclaration.Identifier.ToString();
+            // TODO multiple classes
+            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            string className = classDeclaration.Identifier.ToString();
 
-                if (!className.EndsWith("UnitTests") && !className.EndsWith("IntegrationTests") && !className.EndsWith("EndToEndTests"))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
-                }
+            if (!className.EndsWith("UnitTests") && !className.EndsWith("IntegrationTests") && !className.EndsWith("EndToEndTests"))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
             }
         }
     }
