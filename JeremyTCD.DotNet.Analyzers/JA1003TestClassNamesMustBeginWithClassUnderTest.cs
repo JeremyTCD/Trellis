@@ -12,27 +12,23 @@ using System.Linq;
 namespace JeremyTCD.DotNet.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class JA1003TestClassNamesMustBeCorrectlyFormatted : DiagnosticAnalyzer
+    public class JA1003TestClassNamesMustBeginWithClassUnderTest : DiagnosticAnalyzer
     {
         /// <summary>
-        /// The ID for diagnostics produced by the <see cref="JA1003TestClassNamesMustBeCorrectlyFormatted"/> analyzer.
+        /// The ID for diagnostics produced by the <see cref="JA1003TestClassNamesMustBeginWithClassUnderTest"/> analyzer.
         /// </summary>
         public const string DiagnosticId = "JA1003";
 
         private const string Title = "Test class names must be correctly formatted.";
-        private const string NonExistentClassMessage = "Test class name must begin with class under test; \"{0}\" is not an existing class' name.";
-        private const string InvalidSuffixMessage = "Test class name must end with \"UnitTests\", \"IntegrationTests\" or \"EndToEndTests\".";
+        private const string MessageFormat = "Test class name must begin with class under test.";
         private const string Description = "A test class's name is incorrectly formatted.";
         private const string HelpLink = "";
 
-        private static readonly DiagnosticDescriptor InvalidSuffixDescriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, InvalidSuffixMessage, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
-        
-        private static readonly DiagnosticDescriptor NonExistentClassDescriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, NonExistentClassMessage, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
+        private static readonly DiagnosticDescriptor Descriptor =
+            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
 
         /// <inheritdoc/>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(InvalidSuffixDescriptor, NonExistentClassDescriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);
 
         /// <inheritdoc/>
         public override void Initialize(AnalysisContext context)
@@ -53,19 +49,10 @@ namespace JeremyTCD.DotNet.Analyzers
             // Add diagnostics          
             ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
             string className = classDeclaration.Identifier.ToString();
-
-            // Invalid suffix
-            if (!className.EndsWith("UnitTests") && !className.EndsWith("IntegrationTests") && !className.EndsWith("EndToEndTests"))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(InvalidSuffixDescriptor, classDeclaration.Identifier.GetLocation()));
-                return;
-            }
-
-            // Non existent class 
             string classUnderTestName = className.Replace("UnitTests", "").Replace("IntegrationTests", "").Replace("EndToEndTests", "");
-            if (!Exists(classUnderTestName, context.Compilation.GlobalNamespace))
+            if (classUnderTestName == className || !Exists(classUnderTestName, context.Compilation.GlobalNamespace))
             {
-                context.ReportDiagnostic(Diagnostic.Create(InvalidSuffixDescriptor, classDeclaration.Identifier.GetLocation(), classUnderTestName));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
             }
         }
 
