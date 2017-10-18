@@ -125,7 +125,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A test class&apos;s name does not end with a valid suffix..
+        ///   Looks up a localized string similar to A test class&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1002_Description {
             get {
@@ -134,7 +134,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test class name must end with \&quot;UnitTests\&quot;, \&quot;IntegrationTests\&quot; or \&quot;EndToEndTests\&quot;..
+        ///   Looks up a localized string similar to Test class name is not in the format \&quot;&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;\&quot;..
         /// </summary>
         public static string JA1002_MessageFormat {
             get {
@@ -143,7 +143,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test class names must end with a valid suffix..
+        ///   Looks up a localized string similar to Test class names must be correctly formatted..
         /// </summary>
         public static string JA1002_Title {
             get {

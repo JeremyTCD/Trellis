@@ -139,12 +139,12 @@
     <value>Test class namespaces must be correctly formatted.</value>
   </data>
   <data name="JA1002_Description" xml:space="preserve">
-    <value>A test class's name does not end with a valid suffix.</value>
+    <value>A test class's name is incorrectly formatted.</value>
   </data>
   <data name="JA1002_MessageFormat" xml:space="preserve">
-    <value>Test class name must end with \"UnitTests\", \"IntegrationTests\" or \"EndToEndTests\".</value>
+    <value>Test class name is not in the format \"&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;\".</value>
   </data>
   <data name="JA1002_Title" xml:space="preserve">
-    <value>Test class names must end with a valid suffix.</value>
+    <value>Test class names must be correctly formatted.</value>
   </data>
 </root>

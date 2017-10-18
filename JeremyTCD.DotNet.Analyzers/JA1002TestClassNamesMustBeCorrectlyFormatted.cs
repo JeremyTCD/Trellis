@@ -11,9 +11,9 @@ using System.Linq;
 namespace JeremyTCD.DotNet.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class JA1002TestClassNamesMustEndWithAValidSuffix : DiagnosticAnalyzer
+    public class JA1002TestClassNamesMustBeCorrectlyFormatted : DiagnosticAnalyzer
     {
-        public static string DiagnosticId = nameof(JA1002TestClassNamesMustEndWithAValidSuffix).Substring(0, 6);
+        public static string DiagnosticId = nameof(JA1002TestClassNamesMustBeCorrectlyFormatted).Substring(0, 6);
 
         private static readonly DiagnosticDescriptor Descriptor =
             new DiagnosticDescriptor(DiagnosticId,
@@ -45,11 +45,12 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            // Return if class name already has a valid suffix
+            // Return if class name begins with the name of a testable class and has a valid suffix
             ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            if (TestingHelper.IsUnitTestClass(classDeclaration) ||
+            if ((TestingHelper.IsUnitTestClass(classDeclaration) ||
                 TestingHelper.IsIntegrationTestClass(classDeclaration) ||
-                TestingHelper.IsEndToEndTestClass(classDeclaration))
+                TestingHelper.IsEndToEndTestClass(classDeclaration)) &&
+                TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace) != null)
             {
                 return;
             }
