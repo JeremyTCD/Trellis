@@ -33,7 +33,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 3, 11) },
                 Properties = new Dictionary<string, string>()
                 {
-                    { JA1001TestClassNamespacesMustBeCorrectlyFormatted.CorrectNamespaceProperty, "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1001.CreatesDiagnosticWhenAllConditionsAreSatisfied.Tests"},
+                    { JA1001TestClassNamespacesMustBeCorrectlyFormatted.CorrectNamespaceProperty, "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1001.CreatesDiagnosticIfNamespaceIsIncorrectlyFormatted.Tests"},
                 }
             };
 
