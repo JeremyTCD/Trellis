@@ -13,18 +13,17 @@ namespace JeremyTCD.DotNet.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class JA1002TestClassNamesMustEndWithAValidSuffix : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// The ID for diagnostics produced by the <see cref="JA1002TestClassNamesMustEndWithAValidSuffix"/> analyzer.
-        /// </summary>
-        public const string DiagnosticId = "JA1002";
-
-        private const string Title = "Test class names must end with a valid suffix.";
-        private const string MessageFormat = "Test class name must end with \"UnitTests\", \"IntegrationTests\" or \"EndToEndTests\".";
-        private const string Description = "A test class' name does not end with a valid suffix.";
-        private const string HelpLink = "";
+        public static string DiagnosticId = nameof(JA1002TestClassNamesMustEndWithAValidSuffix).Substring(0, 6);
 
         private static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
+            new DiagnosticDescriptor(DiagnosticId,
+                Strings.JA1002_Title,
+                Strings.JA1002_MessageFormat,
+                Strings.CategoryName_Testing,
+                DiagnosticSeverity.Warning,
+                true,
+                Strings.JA1002_Description,
+                "");
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);
@@ -32,29 +31,31 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(Handle, SyntaxKind.CompilationUnit);
             context.EnableConcurrentExecution();
         }
 
-        private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
+        private void Handle(SyntaxNodeAnalysisContext context)
         {
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
 
             // Return if not in a test class
-            if (!compilationUnit.Usings.Any(u => u.Name.ToString() == "Xunit"))
+            if (!TestingHelper.ContainsTestClass(compilationUnit))
             {
                 return;
             }
 
-            // Add diagnostics
-            // TODO multiple classes
+            // Return if class name already has a valid suffix
             ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            string className = classDeclaration.Identifier.ToString();
-
-            if (!className.EndsWith("UnitTests") && !className.EndsWith("IntegrationTests") && !className.EndsWith("EndToEndTests"))
+            if (TestingHelper.IsUnitTestClass(classDeclaration) ||
+                TestingHelper.IsIntegrationTestClass(classDeclaration) ||
+                TestingHelper.IsEndToEndTestClass(classDeclaration))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
+                return;
             }
+
+            // Add diagnostic
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
         }
     }
 }

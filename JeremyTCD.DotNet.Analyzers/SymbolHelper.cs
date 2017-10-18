@@ -6,7 +6,7 @@ namespace JeremyTCD.DotNet.Analyzers
     public static class SymbolHelper
     {
         // TODO does not handle case where there are multiple classes with the same non-qualified name
-        public static ITypeSymbol TryGetSymbol(string className, INamespaceOrTypeSymbol namespaceSymbol)
+        public static ITypeSymbol TryGetTypeSymbol(string className, INamespaceOrTypeSymbol namespaceSymbol)
         {
             if (namespaceSymbol is ITypeSymbol)
             {
@@ -25,7 +25,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             foreach (INamespaceOrTypeSymbol child in symbols)
             {
-                ITypeSymbol result = TryGetSymbol(className, child);
+                ITypeSymbol result = TryGetTypeSymbol(className, child);
 
                 if (result != null)
                 {

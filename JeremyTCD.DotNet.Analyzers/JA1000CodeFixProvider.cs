@@ -18,7 +18,7 @@ namespace JeremyTCD.DotNet.Analyzers
     {
         /// <inheritdoc/>
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(JA1000TestMethodsMustUseInterfaceMocksForDummies.DiagnosticId);
+            ImmutableArray.Create(JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.DiagnosticId);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider()
@@ -29,20 +29,19 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            foreach (Diagnostic diagnostic in context.Diagnostics)
-            {
-                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                        nameof(JA1000CodeFixProvider),
-                        cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1000CodeFixProvider)),
-                        diagnostic);
-                }
+            Diagnostic diagnostic = context.Diagnostics.Single();
+
+            if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
+            { 
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                    nameof(JA1000CodeFixProvider),
+                    cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
+                    nameof(JA1000CodeFixProvider)),
+                    diagnostic);
             }
 
-            return Task.FromResult(default(object));
+            return Task.CompletedTask;
         }
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -58,16 +57,17 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Add mock repository if required
-            VariableDeclarationSyntax mockRepositoryVariableDeclarataion = compilationUnit.
+            VariableDeclarationSyntax mockRepositoryVariableDeclaration = compilationUnit.
                 DescendantNodes().
                 OfType<VariableDeclarationSyntax>().
                 Where(v => documentEditor.SemanticModel.GetTypeInfo(v.Type).Type.ToString() == "Moq.MockRepository").
                 FirstOrDefault();
-            if (mockRepositoryVariableDeclarataion == null)
+            if (mockRepositoryVariableDeclaration == null)
             {
-                FieldDeclarationSyntax mockRepositoryFieldDeclaration = CreateMockRepositoryFieldDeclaration(syntaxGenerator);
+                FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
                 ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
                 documentEditor.InsertMembers(classDeclaration, 0, new[] { mockRepositoryFieldDeclaration });
+                mockRepositoryVariableDeclaration = mockRepositoryFieldDeclaration.Declaration;
             }
 
             // Replace local variable declaration statement (do this first since it relies on the diagnostic location)
@@ -76,8 +76,9 @@ namespace JeremyTCD.DotNet.Analyzers
                 FirstAncestorOrSelf<LocalDeclarationStatementSyntax>();
             LocalDeclarationStatementSyntax newDummyVariableLocalDeclarationStatement = CreateDummyVariableLocalDeclarationStatement(
                 syntaxGenerator,
-                diagnostic.Properties[JA1000TestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty],
-                diagnostic.Properties[JA1000TestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty]);
+                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty],
+                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty],
+                mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText);
             documentEditor.ReplaceNode(oldDummyVariableLocalDeclarationStatement, newDummyVariableLocalDeclarationStatement);
 
             // Update references to local variable
@@ -85,9 +86,10 @@ namespace JeremyTCD.DotNet.Analyzers
             IEnumerable<IdentifierNameSyntax> dummyVariableIdentifierNames = testMethodDeclaration.
                 DescendantNodes().
                 OfType<IdentifierNameSyntax>().
-                Where(i => i.Identifier.ToString() == diagnostic.Properties[JA1000TestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty]);
+                Where(i => i.Identifier.ToString() == diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty]);
             foreach (IdentifierNameSyntax identifierName in dummyVariableIdentifierNames)
             {
+                // TODO doesn't work if identifierName is part of an argument with argument name stated
                 SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(
                     identifierName,
                     syntaxGenerator.IdentifierName("Object"));
@@ -98,28 +100,13 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         private static LocalDeclarationStatementSyntax CreateDummyVariableLocalDeclarationStatement(SyntaxGenerator syntaxGenerator, string variableName,
-            string interfaceName)
+            string interfaceName, string mockRepositoryVariableName)
         {
+            SyntaxNode invocationExpression = TestingHelper.CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, interfaceName, mockRepositoryVariableName);
             SyntaxNode interfaceIdentifier = syntaxGenerator.IdentifierName(interfaceName);
-            SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(
-                syntaxGenerator.IdentifierName("_mockRepository"),
-                syntaxGenerator.GenericName("Create", interfaceIdentifier));
-            SyntaxNode invocationExpression = syntaxGenerator.InvocationExpression(memberAccessExpression);
             SyntaxNode genericName = syntaxGenerator.GenericName("Mock", interfaceIdentifier);
 
             return (LocalDeclarationStatementSyntax)syntaxGenerator.LocalDeclarationStatement(genericName, variableName, invocationExpression);
-        }
-
-        private static FieldDeclarationSyntax CreateMockRepositoryFieldDeclaration(SyntaxGenerator syntaxGenerator)
-        {
-            SyntaxNode argumentMemberAccessExpression = syntaxGenerator.MemberAccessExpression(
-                    syntaxGenerator.IdentifierName("MockBehavior"),
-                    syntaxGenerator.IdentifierName("Default"));
-            SyntaxNode constructorArgument = syntaxGenerator.Argument(argumentMemberAccessExpression);
-            SyntaxNode typeIdentifier = syntaxGenerator.IdentifierName("MockRepository");
-            SyntaxNode objectCreationExpression = syntaxGenerator.ObjectCreationExpression(typeIdentifier, constructorArgument);
-
-            return (FieldDeclarationSyntax)syntaxGenerator.FieldDeclaration("_mockRepository", typeIdentifier, initializer: objectCreationExpression);
         }
     }
 }

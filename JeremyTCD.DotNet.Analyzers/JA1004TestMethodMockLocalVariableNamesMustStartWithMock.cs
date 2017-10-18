@@ -20,7 +20,7 @@ namespace JeremyTCD.DotNet.Analyzers
         public const string DiagnosticId = "JA1004";
 
         private const string Title = "Test method mock local variable names must start with \"mock\".";
-        private const string MessageFormat = "Mock local variable {0}'s name must start with \"mock\".";
+        private const string MessageFormat = "Mock local variable name \"{0}\" must begin with \"mock\".";
         private const string Description = "A test method mock local varaible's name does not start with \"mock\".";
         private const string HelpLink = "";
 
@@ -42,18 +42,21 @@ namespace JeremyTCD.DotNet.Analyzers
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
 
             // Return if not in a test class
-            if (!compilationUnit.Usings.Any(u => u.Name.ToString() == "Xunit"))
+            if (!TestingHelper.ContainsTestClass(compilationUnit))
             {
                 return;
             }
 
             // Find invocations of Mock<T>.Setup
-            INamedTypeSymbol mockType = context.Compilation.GetTypeByMetadataName("Moq.Mock`1");
-
             IEnumerable<LocalDeclarationStatementSyntax> localDeclarations = compilationUnit.
                 DescendantNodes().
                 OfType<LocalDeclarationStatementSyntax>();
+            if(localDeclarations.Count() == 0)
+            {
+                return;
+            }
 
+            INamedTypeSymbol lazyMockType = null;
             foreach(LocalDeclarationStatementSyntax localDeclaration in localDeclarations)
             {
                 GenericNameSyntax genericName = localDeclaration.Declaration.Type as GenericNameSyntax;
@@ -67,40 +70,33 @@ namespace JeremyTCD.DotNet.Analyzers
                     continue;
                 }
 
+                if(lazyMockType == null)
+                {
+                     lazyMockType = context.Compilation.GetTypeByMetadataName("Moq.Mock`1");
+                }
                 if(context.
                     SemanticModel.
-                    GetTypeInfo(compilationUnit.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First().Declaration.Type).
+                    GetTypeInfo(localDeclaration.Declaration.Type).
                     Type.
-                    OriginalDefinition != mockType)
+                    OriginalDefinition != lazyMockType)
                 {
                     continue;
                 }
 
                 // Get all occurences of the local variable within its method, if it ever calls a method named "setup", its own name must begin with mock
+                // TODO multiple variables in declaration
+                SyntaxToken variableToken = localDeclaration.Declaration.Variables.First().Identifier;
+                string variableName = variableToken.ValueText;
+                MethodDeclarationSyntax methodDeclaration = localDeclaration.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+                if(methodDeclaration.
+                    DescendantNodes().
+                    OfType<MemberAccessExpressionSyntax>().
+                    Any(m => (m.Expression as IdentifierNameSyntax)?.Identifier.ValueText == variableName && m.Name.Identifier.ValueText == "Setup") &&
+                    !variableName.StartsWith("mock"))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, variableToken.GetLocation(), variableName));
+                }
             }
-
-            // TODO consider other setup methods
-            //IEnumerable<ISymbol> setupMethods = mockType.GetMembers("Setup");
-            //IEnumerable<InvocationExpressionSyntax> invocations = compilationUnit.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-            //foreach(InvocationExpressionSyntax invocation in invocations)
-            //{
-            //    SimpleNameSyntax memberName = (invocation.Expression as MemberAccessExpressionSyntax)?.Name;
-            //    if (memberName.Identifier.ValueText == "Setup")
-            //    {
-            //        ISymbol memberSymbol = context.SemanticModel.GetDeclaredSymbol(memberName);
-
-            //    }
-            //}
-
-            // Add diagnostics          
-            //ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            //string className = classDeclaration.Identifier.ToString();
-            //string classUnderTestName = className.Replace("UnitTests", "").Replace("IntegrationTests", "").Replace("EndToEndTests", "");
-            //if (classUnderTestName == className || SymbolHelper.TryGetSymbol(classUnderTestName, context.Compilation.GlobalNamespace) == null)
-            //{
-            //    context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation(), classUnderTestName));
-            //}
         }
     }
 }

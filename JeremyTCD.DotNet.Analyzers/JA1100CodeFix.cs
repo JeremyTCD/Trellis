@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Immutable;
@@ -10,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1000CodeFixProvider)), Shared]
-    public class JA1001CodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1004CodeFixProvider)), Shared]
+    public class JA1100CodeFixProvider : CodeFixProvider
     {
         /// <inheritdoc/>
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(JA1001TestClassNamespacesMustBeCorrectlyFormatted.DiagnosticId);
+            ImmutableArray.Create(JA1100PublicPropertiesAndMethodsMustBeVirtual.DiagnosticId);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider()
@@ -32,12 +33,13 @@ namespace JeremyTCD.DotNet.Analyzers
                 {
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                            nameof(JA1001CodeFixProvider),
-                            cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                            nameof(JA1001CodeFixProvider)),
+                        nameof(JA1100CodeFixProvider),
+                        cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
+                        nameof(JA1100CodeFixProvider)),
                         diagnostic);
                 }
             }
+
             return Task.CompletedTask;
         }
 
@@ -45,33 +47,27 @@ namespace JeremyTCD.DotNet.Analyzers
         {
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
-            SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            // Update namespace
-            SyntaxNode oldQualifiedName = compilationUnit.FindNode(diagnostic.Location.SourceSpan);
-            SyntaxNode newQualifiedName = CreateQualifiedName(
-                syntaxGenerator, 
-                diagnostic.Properties[JA1001TestClassNamespacesMustBeCorrectlyFormatted.CorrectNamespaceProperty].Split('.'));
-            documentEditor.ReplaceNode(oldQualifiedName, newQualifiedName);
+            MemberDeclarationSyntax oldMemberDeclaration = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as MemberDeclarationSyntax;
+            SyntaxToken virtualSyntaxToken = SyntaxFactory.Token(SyntaxKind.VirtualKeyword);
+            MemberDeclarationSyntax newMemberDeclaration = null;
+
+            if (oldMemberDeclaration is PropertyDeclarationSyntax)
+            {
+                newMemberDeclaration = (oldMemberDeclaration as PropertyDeclarationSyntax).AddModifiers(virtualSyntaxToken);
+            }
+            else if (oldMemberDeclaration is MethodDeclarationSyntax)
+            {
+                newMemberDeclaration = (oldMemberDeclaration as MethodDeclarationSyntax).AddModifiers(virtualSyntaxToken);
+            }
+            else
+            {
+                return document;
+            }
+
+            documentEditor.ReplaceNode(oldMemberDeclaration, newMemberDeclaration);
 
             return documentEditor.GetChangedDocument();
-        }
-
-        public static QualifiedNameSyntax CreateQualifiedName(SyntaxGenerator syntaxGenerator, string[] names)
-        {
-            int numNames = names.Length;
-            if(numNames < 2)
-            {
-                return null;
-            }
-
-            SyntaxNode result = syntaxGenerator.IdentifierName(names[0]);
-            for(int i = 1; i < numNames; i++)
-            {
-                result = syntaxGenerator.QualifiedName(result, syntaxGenerator.IdentifierName(names[i]));
-            }
-
-            return result as QualifiedNameSyntax;
         }
     }
 }

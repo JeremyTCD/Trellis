@@ -50,7 +50,7 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
             string className = classDeclaration.Identifier.ToString();
             string classUnderTestName = className.Replace("UnitTests", "").Replace("IntegrationTests", "").Replace("EndToEndTests", "");
-            if (classUnderTestName == className || SymbolHelper.TryGetSymbol(classUnderTestName, context.Compilation.GlobalNamespace) == null)
+            if (classUnderTestName == className || SymbolHelper.TryGetTypeSymbol(classUnderTestName, context.Compilation.GlobalNamespace) == null)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation(), classUnderTestName));
             }
