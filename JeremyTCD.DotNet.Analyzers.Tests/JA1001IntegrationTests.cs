@@ -17,7 +17,13 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
-        public void DiagnosticAnalyzer_CreatesDiagnosticWhenAllConditionsAreSatisfied()
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticsIfNamespaceIsCorrectlyFormatted()
+        {
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
+        public void DiagnosticAnalyzer_CreatesDiagnosticIfNamespaceIsIncorrectlyFormatted()
         {
             DiagnosticResult expected = new DiagnosticResult
             {

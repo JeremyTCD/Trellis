@@ -54,14 +54,11 @@ namespace JeremyTCD.DotNet.Analyzers
             // Add diagnostic
             NamespaceDeclarationSyntax namespaceDeclaration = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().First();
             ClassDeclarationSyntax classDeclaration = namespaceDeclaration.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            string className = classDeclaration.Identifier.ValueText;
-            string classUnderTestName = className.Replace("UnitTests", "").Replace("IntegrationTests", "").Replace("EndToEndTests", "");
             ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
             ITypeSymbol classUnderTestSymbol;
             string correctNamespace;
 
-            if (classUnderTestName == className ||
-                (classUnderTestSymbol = SymbolHelper.TryGetTypeSymbol(classUnderTestName, context.Compilation.GlobalNamespace)) == null)
+            if ((classUnderTestSymbol = TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace)) == null)
             {
                 builder.Add(Constants.NoCodeFix, null);
             }
