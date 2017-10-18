@@ -150,5 +150,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1002_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test method mock local variable&apos;s name is incorrectly formatted..
+        /// </summary>
+        public static string JA1004_Description {
+            get {
+                return ResourceManager.GetString("JA1004_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mock local variable name \&quot;{0}\&quot; must begin with \&quot;{1}\&quot;..
+        /// </summary>
+        public static string JA1004_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1004_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method mock local variable names must be correctly formatted..
+        /// </summary>
+        public static string JA1004_Title {
+            get {
+                return ResourceManager.GetString("JA1004_Title", resourceCulture);
+            }
+        }
     }
 }

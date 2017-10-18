@@ -17,7 +17,7 @@ namespace JeremyTCD.DotNet.Analyzers
     {
         /// <inheritdoc/>
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(JA1004TestMethodMockLocalVariableNamesMustStartWithMock.DiagnosticId);
+            ImmutableArray.Create(JA1004TestMethodMockLocalVariableNamesMustBeCorrectlyFormatted.DiagnosticId);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider()
