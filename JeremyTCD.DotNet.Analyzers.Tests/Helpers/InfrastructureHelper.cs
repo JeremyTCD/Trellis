@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -30,10 +31,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         /// <returns>A string containing the syntax of the Document after formatting</returns>
         public static string GetStringFromDocument(Document document)
         {
-            var simplifiedDoc = Simplifier.ReduceAsync(document, Simplifier.Annotation).Result;
-            var root = simplifiedDoc.GetSyntaxRootAsync().Result;
-            root = Formatter.Format(root, Formatter.Annotation, simplifiedDoc.Project.Solution.Workspace);
-            return root.GetText().ToString();
+            return document.GetTextAsync().Result.ToString();
         }
 
         /// <summary>

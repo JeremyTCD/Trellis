@@ -5,35 +5,26 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class SymbolHelper
     {
-        // TODO does not handle case where there are multiple classes with the same non-qualified name
-        public static ITypeSymbol TryGetTypeSymbol(string className, INamespaceOrTypeSymbol namespaceSymbol)
+        public static void TryGetTypeSymbol(string className, INamespaceOrTypeSymbol namespaceSymbol, List<ITypeSymbol> result)
         {
             if (namespaceSymbol is ITypeSymbol)
             {
                 // TODO does not handle nested types
                 if (namespaceSymbol.Name == className)
                 {
-                    return namespaceSymbol as ITypeSymbol;
+                    result.Add(namespaceSymbol as ITypeSymbol);
                 }
-                else
-                {
-                    return null;
-                }
+                return;
             }
 
             IEnumerable<INamespaceOrTypeSymbol> symbols = (namespaceSymbol as INamespaceSymbol).GetMembers();
 
             foreach (INamespaceOrTypeSymbol child in symbols)
             {
-                ITypeSymbol result = TryGetTypeSymbol(className, child);
-
-                if (result != null)
-                {
-                    return result;
-                }
+                TryGetTypeSymbol(className, child, result);
             }
 
-            return null;
+            return;
         }
     }
 }

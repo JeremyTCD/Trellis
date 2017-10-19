@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
@@ -81,7 +82,24 @@ namespace JeremyTCD.DotNet.Analyzers
                 return null;
             }
 
-            return SymbolHelper.TryGetTypeSymbol(classUnderTestName, globalNamespace);
+            List<ITypeSymbol> types = new List<ITypeSymbol>();
+            SymbolHelper.TryGetTypeSymbol(classUnderTestName, globalNamespace, types);
+
+            // More than one types with the same name (from different namespaces)
+            if(types.Count() > 1)
+            {
+                string classNamespaceName = testClassDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
+
+                foreach(ITypeSymbol type in types)
+                {
+                    if (classNamespaceName.StartsWith(type.ContainingNamespace.ToString()))
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            return types.FirstOrDefault();
         }
 
         public static bool IsMockSetupMethod(IMethodSymbol methodSymbol)

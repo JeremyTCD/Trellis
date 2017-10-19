@@ -57,7 +57,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            ITypeSymbol classUnderTestSymbol = SymbolHelper.TryGetTypeSymbol(classUnderTestName, context.Compilation.GlobalNamespace);
+            ITypeSymbol classUnderTestSymbol = TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace);
             if (classUnderTestSymbol == null)
             {
                 return;

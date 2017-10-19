@@ -107,7 +107,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test class namespace is not in the format \&quot;&lt;NamespaceOfClassUnderTest&gt;.Tests\&quot;..
+        ///   Looks up a localized string similar to Test class namespace is not in the format &quot;&lt;NamespaceOfClassUnderTest&gt;.Tests&quot;..
         /// </summary>
         public static string JA1001_MessageFormat {
             get {
@@ -134,7 +134,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test class name is not in the format \&quot;&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;\&quot;..
+        ///   Looks up a localized string similar to Test class name is not in the format &quot;&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;&quot;..
         /// </summary>
         public static string JA1002_MessageFormat {
             get {
@@ -161,7 +161,10 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mock local variable name \&quot;{0}\&quot; must begin with \&quot;{1}\&quot;..
+        ///   Looks up a localized string similar to Mock local variable name &quot;{0}&quot; is incorrectly formatted. 
+        ///- Instances or mocks of the class under test must be named &quot;testSubject&quot;.
+        ///- Mocks with behaviours must have names starting with &quot;mock&quot;.
+        ///- Mocks that do not have behaviours must have names starting with &quot;dummy&quot;..
         /// </summary>
         public static string JA1004_MessageFormat {
             get {

@@ -17,7 +17,7 @@ namespace JeremyTCD.DotNet.Analyzers
     {
         /// <inheritdoc/>
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(JA1004TestMethodMockLocalVariableNamesMustBeCorrectlyFormatted.DiagnosticId);
+            ImmutableArray.Create(JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.DiagnosticId);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider()
@@ -50,11 +50,8 @@ namespace JeremyTCD.DotNet.Analyzers
 
             VariableDeclaratorSyntax oldVariableDeclarator = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as VariableDeclaratorSyntax;
             string oldVariableName = oldVariableDeclarator.Identifier.ValueText;
-            char[] oldVariableNameChars = oldVariableName.ToCharArray();
-            oldVariableNameChars[0] = char.ToUpper(oldVariableNameChars[0]);
-            string newVariableName = $"mock{new string(oldVariableNameChars)}";
-            VariableDeclaratorSyntax newVariableDeclarator = oldVariableDeclarator.
-                WithIdentifier(SyntaxFactory.Identifier(newVariableName));
+            string newVariableName = diagnostic.Properties[JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.CorrectVariableNameProperty];
+            VariableDeclaratorSyntax newVariableDeclarator = oldVariableDeclarator.WithIdentifier(SyntaxFactory.Identifier(newVariableName));
 
             // DocumentEditor does not work for VariableDeclartorSyntax - https://github.com/dotnet/roslyn/issues/8154
             compilationUnit = compilationUnit.ReplaceNode(oldVariableDeclarator, newVariableDeclarator);
@@ -67,7 +64,7 @@ namespace JeremyTCD.DotNet.Analyzers
             {
                 if (identifierName.Identifier.ValueText == oldVariableName)
                 {
-                    documentEditor.ReplaceNode(identifierName, SyntaxFactory.IdentifierName(newVariableName));
+                    documentEditor.ReplaceNode(identifierName, SyntaxFactory.IdentifierName(newVariableName).WithTriviaFrom(identifierName));
                 }
             }
 

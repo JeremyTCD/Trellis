@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
+    // The issue with creating dummy implementations of abstract classes just for testing is that if the abstract classes change, many test classes will need to be updated
     // combine with 1006
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class JA1007MocksMustBeUsedToTestAbstractClasses : DiagnosticAnalyzer

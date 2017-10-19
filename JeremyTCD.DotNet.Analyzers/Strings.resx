@@ -133,7 +133,7 @@
     <value>A test class's namespace is incorrectly formatted.</value>
   </data>
   <data name="JA1001_MessageFormat" xml:space="preserve">
-    <value>Test class namespace is not in the format \"&lt;NamespaceOfClassUnderTest&gt;.Tests\".</value>
+    <value>Test class namespace is not in the format "&lt;NamespaceOfClassUnderTest&gt;.Tests".</value>
   </data>
   <data name="JA1001_Title" xml:space="preserve">
     <value>Test class namespaces must be correctly formatted.</value>
@@ -142,7 +142,7 @@
     <value>A test class's name is incorrectly formatted.</value>
   </data>
   <data name="JA1002_MessageFormat" xml:space="preserve">
-    <value>Test class name is not in the format \"&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;\".</value>
+    <value>Test class name is not in the format "&lt;ClassUnderTest&gt;&lt;UnitTests|IntegrationTests|EndToEndTests&gt;".</value>
   </data>
   <data name="JA1002_Title" xml:space="preserve">
     <value>Test class names must be correctly formatted.</value>
@@ -151,7 +151,10 @@
     <value>A test method mock local variable's name is incorrectly formatted.</value>
   </data>
   <data name="JA1004_MessageFormat" xml:space="preserve">
-    <value>Mock local variable name \"{0}\" must begin with \"{1}\".</value>
+    <value>Mock local variable name "{0}" is incorrectly formatted. 
+- Instances or mocks of the class under test must be named "testSubject".
+- Mocks with behaviours must have names starting with "mock".
+- Mocks that do not have behaviours must have names starting with "dummy".</value>
   </data>
   <data name="JA1004_Title" xml:space="preserve">
     <value>Test method mock local variable names must be correctly formatted.</value>
