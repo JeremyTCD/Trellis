@@ -180,5 +180,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1004_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test subject is not instantiated by a valid create method..
+        /// </summary>
+        public static string JA1005_Description {
+            get {
+                return ResourceManager.GetString("JA1005_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use a valid create method to instantiate the object..
+        /// </summary>
+        public static string JA1005_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1005_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test subject must be instantiated in a valid create method..
+        /// </summary>
+        public static string JA1005_Title {
+            get {
+                return ResourceManager.GetString("JA1005_Title", resourceCulture);
+            }
+        }
     }
 }

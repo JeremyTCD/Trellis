@@ -23,14 +23,24 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static InvocationExpressionSyntax CreateMockRepositoryCreateInvocationExpression(SyntaxGenerator syntaxGenerator,
-            string typeName, string mockRepositoryVariableName)
+            string typeName, string mockRepositoryVariableName, IEnumerable<SyntaxNode> arguments = null)
         {
             SyntaxNode typeIdentifier = syntaxGenerator.IdentifierName(typeName);
             SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(
                 syntaxGenerator.IdentifierName(mockRepositoryVariableName),
                 syntaxGenerator.GenericName("Create", typeIdentifier));
 
-            return (InvocationExpressionSyntax)syntaxGenerator.InvocationExpression(memberAccessExpression);
+            return (InvocationExpressionSyntax)syntaxGenerator.InvocationExpression(memberAccessExpression, arguments ?? new SyntaxNode[] { });
+        }
+
+        public static VariableDeclarationSyntax GetMockRepositoryFieldDeclaration(CompilationUnitSyntax compilationUnit, SemanticModel semanticModel)
+        {
+            // TODO check for default name _mockRepository
+            return compilationUnit.
+                DescendantNodes().
+                OfType<VariableDeclarationSyntax>().
+                Where(v => semanticModel.GetTypeInfo(v.Type).Type.ToString() == "Moq.MockRepository").
+                FirstOrDefault();
         }
 
         public static bool ContainsTestClass(CompilationUnitSyntax compilationUnit)
@@ -123,6 +133,16 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return methodSymbol.ToDisplayString() == "Moq.MockFactory.VerifyAll()";
+        }
+
+        public static bool IsMockRepositoryCreateMethod(IMethodSymbol methodSymbol)
+        {
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
+            return methodSymbol.OriginalDefinition.ToDisplayString() == "Moq.MockFactory.Create<T>()";
         }
     }
 }

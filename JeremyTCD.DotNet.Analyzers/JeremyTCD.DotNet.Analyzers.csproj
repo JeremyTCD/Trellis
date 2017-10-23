@@ -24,13 +24,6 @@
         <Description>A set of Roslyn analyzers.</Description>
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Remove="bin\**" />
-      <EmbeddedResource Remove="bin\**" />
-      <None Remove="bin\**" />
-    </ItemGroup>
-
     <!--
         Manually publishing roslyn codeanalysis packages:
         D:\Libraries\roslyn\Binaries\Debug\Exes\csi\csi.exe "D:\Libraries\roslyn\src\NuGet\BuildNuGets.csx" "D:\Libraries\roslyn\Binaries\Debug" "2.4.0" "D:\Libraries\roslyn\Binaries\Debug\NuGet\PerBuildPreRelease" 0
@@ -38,6 +31,7 @@
 
     <ItemGroup>
         <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="tools" />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 
     <ItemGroup>

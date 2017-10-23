@@ -57,11 +57,7 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Add mock repository if required
-            VariableDeclarationSyntax mockRepositoryVariableDeclaration = compilationUnit.
-                DescendantNodes().
-                OfType<VariableDeclarationSyntax>().
-                Where(v => documentEditor.SemanticModel.GetTypeInfo(v.Type).Type.ToString() == "Moq.MockRepository").
-                FirstOrDefault();
+            VariableDeclarationSyntax mockRepositoryVariableDeclaration = TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, documentEditor.SemanticModel);
             if (mockRepositoryVariableDeclaration == null)
             {
                 FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
