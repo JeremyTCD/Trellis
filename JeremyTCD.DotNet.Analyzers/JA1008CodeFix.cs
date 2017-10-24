@@ -32,9 +32,9 @@ namespace JeremyTCD.DotNet.Analyzers
                 {
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                        nameof(JA1100CodeFixProvider),
+                        nameof(JA1008CodeFixProvider),
                         cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1100CodeFixProvider)),
+                        nameof(JA1008CodeFixProvider)),
                         diagnostic);
                 }
             }

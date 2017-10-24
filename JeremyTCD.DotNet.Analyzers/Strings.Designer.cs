@@ -207,5 +207,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1005_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll..
+        /// </summary>
+        public static string JA1008_Description {
+            get {
+                return ResourceManager.GetString("JA1008_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method must call MockRepository.VerifyAll..
+        /// </summary>
+        public static string JA1008_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1008_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method must call MockRepository.VerifyAll if it calls Mock&lt;T&gt;.Setup..
+        /// </summary>
+        public static string JA1008_Title {
+            get {
+                return ResourceManager.GetString("JA1008_Title", resourceCulture);
+            }
+        }
     }
 }

@@ -14,18 +14,17 @@ namespace JeremyTCD.DotNet.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class JA1008TestMethodMustCallMockRepositoryVerifyAllIfItCallsMockSetup : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// The ID for diagnostics produced by the <see cref="JA1008TestMethodMustCallMockRepositoryVerifyAllIfItCallsMockSetup"/> analyzer.
-        /// </summary>
-        public const string DiagnosticId = "JA1008";
-
-        private const string Title = "Test method must call MockRepository.VerifyAll if it calls Mock<T>.Setup.";
-        private const string MessageFormat = "Test method must call MockRepository.VerifyAll.";
-        private const string Description = "A test method that calls Mock<T>.Setup does not call MockRepository.VerifyAll.";
-        private const string HelpLink = "";
+        public static string DiagnosticId = nameof(JA1008TestMethodMustCallMockRepositoryVerifyAllIfItCallsMockSetup).Substring(0, 6);
 
         private static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
+            new DiagnosticDescriptor(DiagnosticId,
+                Strings.JA1008_Title,
+                Strings.JA1008_MessageFormat,
+                Strings.CategoryName_Testing,
+                DiagnosticSeverity.Warning,
+                true,
+                Strings.JA1008_Description,
+                "");
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);
@@ -60,7 +59,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             foreach(MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
             {
-                IEnumerable<IMethodSymbol> invokedMethods = testMethodDeclaration.
+                IEnumerable <IMethodSymbol> invokedMethods = testMethodDeclaration.
                     DescendantNodes().
                     OfType<InvocationExpressionSyntax>().
                     Select(i => semanticModel.GetSymbolInfo(i).Symbol as IMethodSymbol);

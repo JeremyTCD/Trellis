@@ -168,4 +168,13 @@
   <data name="JA1005_Title" xml:space="preserve">
     <value>Test subject must be instantiated in a valid create method.</value>
   </data>
+  <data name="JA1008_Description" xml:space="preserve">
+    <value>A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll.</value>
+  </data>
+  <data name="JA1008_MessageFormat" xml:space="preserve">
+    <value>Test method must call MockRepository.VerifyAll.</value>
+  </data>
+  <data name="JA1008_Title" xml:space="preserve">
+    <value>Test method must call MockRepository.VerifyAll if it calls Mock&lt;T&gt;.Setup.</value>
+  </data>
 </root>

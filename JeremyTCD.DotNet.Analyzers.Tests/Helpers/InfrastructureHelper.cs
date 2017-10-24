@@ -1,26 +1,24 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Xunit;
 
 namespace JeremyTCD.DotNet.Analyzers.Tests
 {
     public static class InfrastructureHelper
     {
-        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
-        private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
-        private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
-        private static readonly MetadataReference XunitReference = MetadataReference.CreateFromFile(typeof(FactAttribute).Assembly.Location);
-        private static readonly MetadataReference MoqReference = MetadataReference.CreateFromFile(typeof(Mock).Assembly.Location);
+        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
+        private static readonly MetadataReference LinqReference = MetadataReference.CreateFromFile(typeof(Expression<>).GetTypeInfo().Assembly.Location);
+        private static readonly MetadataReference XunitReference = MetadataReference.CreateFromFile(typeof(FactAttribute).GetTypeInfo().Assembly.Location);
+        private static readonly MetadataReference MoqReference = MetadataReference.CreateFromFile(typeof(Mock).GetTypeInfo().Assembly.Location);
+        private static readonly MetadataReference SystemRuntimeReference = MetadataReference.CreateFromFile("C:/Program Files/dotnet/shared/Microsoft.NETCore.App/2.0.0/System.Runtime.dll");
 
         private static string TestProjectName = "TestProject";
 
@@ -47,7 +45,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
 
             if (files.Count() != documents.Length)
             {
-                throw new SystemException("Amount of sources did not match amount of Documents created");
+                throw new Exception("Amount of sources did not match amount of Documents created");
             }
 
             return documents;
@@ -67,10 +65,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
                 .AddMetadataReference(projectId, CorlibReference)
-                .AddMetadataReference(projectId, SystemCoreReference)
-                .AddMetadataReference(projectId, CSharpSymbolsReference)
-                .AddMetadataReference(projectId, CodeAnalysisReference)
+                .AddMetadataReference(projectId, LinqReference)
                 .AddMetadataReference(projectId, XunitReference)
+                .AddMetadataReference(projectId, SystemRuntimeReference)
                 .AddMetadataReference(projectId, MoqReference);
 
             int count = 0;
