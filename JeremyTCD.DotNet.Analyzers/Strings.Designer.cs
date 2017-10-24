@@ -234,5 +234,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1008_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mock&lt;T&gt;() used instead of MockRepository.Create..
+        /// </summary>
+        public static string JA1009_Description {
+            get {
+                return ResourceManager.GetString("JA1009_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use MockRepository.Create instead of Mock&lt;T&gt;()..
+        /// </summary>
+        public static string JA1009_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1009_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MockRepository.Create must be used instead of Mock&lt;T&gt;&apos;s constructor..
+        /// </summary>
+        public static string JA1009_Title {
+            get {
+                return ResourceManager.GetString("JA1009_Title", resourceCulture);
+            }
+        }
     }
 }

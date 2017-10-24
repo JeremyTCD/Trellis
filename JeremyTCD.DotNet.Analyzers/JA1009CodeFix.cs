@@ -34,9 +34,9 @@ namespace JeremyTCD.DotNet.Analyzers
                 {
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                        nameof(JA1100CodeFixProvider),
+                        nameof(JA1009CodeFixProvider),
                         cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1100CodeFixProvider)),
+                        nameof(JA1009CodeFixProvider)),
                         diagnostic);
                 }
             }
@@ -55,12 +55,7 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax testClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
             // Check if mock repository field exists
-            // TODO could be declared as a property as well
-            VariableDeclarationSyntax mockRepositoryVariableDeclaration = compilationUnit.
-                DescendantNodes().
-                OfType<VariableDeclarationSyntax>().
-                Where(v => documentEditor.SemanticModel.GetTypeInfo(v.Type).Type.ToString() == "Moq.MockRepository").
-                FirstOrDefault();
+            VariableDeclarationSyntax mockRepositoryVariableDeclaration = TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, semanticModel);
             if (mockRepositoryVariableDeclaration == null)
             {
                 FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
@@ -74,7 +69,8 @@ namespace JeremyTCD.DotNet.Analyzers
                 CreateMockRepositoryCreateInvocationExpression(
                     syntaxGenerator,
                     (oldExpression.Type as GenericNameSyntax).TypeArgumentList.Arguments.First().ToString(),
-                    mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText);
+                    mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText,
+                    oldExpression.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault()?.Arguments);
             documentEditor.ReplaceNode(oldExpression, newExpression);
 
             return documentEditor.GetChangedDocument();

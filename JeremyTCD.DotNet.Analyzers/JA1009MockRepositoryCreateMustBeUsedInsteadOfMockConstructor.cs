@@ -17,15 +17,17 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <summary>
         /// The ID for diagnostics produced by the <see cref="JA1009MockRepositoryCreateMustBeUsedInsteadOfMockConstructor"/> analyzer.
         /// </summary>
-        public const string DiagnosticId = "JA1009";
-
-        private const string Title = "MockRepository.Create must be used instead of Mock<T>'s constructor.";
-        private const string MessageFormat = "Use MockRepository.Create instead of Mock<T>().";
-        private const string Description = "Mock<T>() used instead of MockRepository.Create.";
-        private const string HelpLink = "";
+        public static string DiagnosticId = nameof(JA1009MockRepositoryCreateMustBeUsedInsteadOfMockConstructor).Substring(0, 6);
 
         private static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, "Testing", DiagnosticSeverity.Warning, true, Description, HelpLink);
+            new DiagnosticDescriptor(DiagnosticId,
+                Strings.JA1009_Title,
+                Strings.JA1009_MessageFormat,
+                Strings.CategoryName_Testing,
+                DiagnosticSeverity.Warning,
+                true,
+                Strings.JA1009_Description,
+                "");
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);

@@ -36,6 +36,7 @@ namespace JeremyTCD.DotNet.Analyzers
         public static VariableDeclarationSyntax GetMockRepositoryFieldDeclaration(CompilationUnitSyntax compilationUnit, SemanticModel semanticModel)
         {
             // TODO check for default name _mockRepository
+            // TODO could be declared as a property as well
             return compilationUnit.
                 DescendantNodes().
                 OfType<VariableDeclarationSyntax>().
