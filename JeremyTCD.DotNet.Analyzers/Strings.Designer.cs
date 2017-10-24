@@ -261,5 +261,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1009_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A public property or method is not virtual..
+        /// </summary>
+        public static string JA1100_Description {
+            get {
+                return ResourceManager.GetString("JA1100_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property or method must be virtual..
+        /// </summary>
+        public static string JA1100_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1100_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public properties and methods must be virtual..
+        /// </summary>
+        public static string JA1100_Title {
+            get {
+                return ResourceManager.GetString("JA1100_Title", resourceCulture);
+            }
+        }
     }
 }

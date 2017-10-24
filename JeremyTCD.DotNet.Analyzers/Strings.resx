@@ -186,4 +186,13 @@
   <data name="JA1009_Title" xml:space="preserve">
     <value>MockRepository.Create must be used instead of Mock&lt;T&gt;'s constructor.</value>
   </data>
+  <data name="JA1100_Description" xml:space="preserve">
+    <value>A public property or method is not virtual.</value>
+  </data>
+  <data name="JA1100_MessageFormat" xml:space="preserve">
+    <value>Property or method must be virtual.</value>
+  </data>
+  <data name="JA1100_Title" xml:space="preserve">
+    <value>Public properties and methods must be virtual.</value>
+  </data>
 </root>

@@ -13,18 +13,17 @@ namespace JeremyTCD.DotNet.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class JA1100PublicPropertiesAndMethodsMustBeVirtual : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// The ID for diagnostics produced by the <see cref="JA1100PublicPropertiesAndMethodsMustBeVirtual"/> analyzer.
-        /// </summary>
-        public const string DiagnosticId = "JA1100";
-
-        private const string Title = "Public properties and methods must be virtual.";
-        private const string MessageFormat = "Property or method must be virtual.";
-        private const string Description = "A public property or method is not virtual.";
-        private const string HelpLink = "";
+        public static string DiagnosticId = nameof(JA1100PublicPropertiesAndMethodsMustBeVirtual).Substring(0, 6);
 
         private static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, "Accessiblity", DiagnosticSeverity.Warning, true, Description, HelpLink);
+            new DiagnosticDescriptor(DiagnosticId,
+                Strings.JA1100_Title,
+                Strings.JA1100_MessageFormat,
+                Strings.CategoryName_Testing,
+                DiagnosticSeverity.Warning,
+                true,
+                Strings.JA1100_Description,
+                "");
 
         /// <inheritdoc/>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptor);
@@ -61,12 +60,18 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            if (GeneratedCodeHelper.IsGenerated(context.Node.SyntaxTree.FilePath))
+            // Return if file is a designer.cs file generated from a resx file
+            if (GeneratedCodeHelper.IsDesigner(context.Node.SyntaxTree.FilePath))
             {
                 return;
             }
 
             if (TestingHelper.ContainsTestClass(context.Node.FirstAncestorOrSelf<CompilationUnitSyntax>()))
+            {
+                return;
+            }
+
+            if(!modifiers.Any(s => s.ValueText == "public"))
             {
                 return;
             }
