@@ -151,7 +151,7 @@
     <value>A test method's name is incorrectly formatted.</value>
   </data>
   <data name="JA1003_MessageFormat" xml:space="preserve">
-    <value>Test method names must be of the format "&lt;MethodUnderTest&gt;_&lt;TestDescription&gt;</value>
+    <value>Test method name must be of the format "&lt;MethodUnderTest&gt;_&lt;TestDescription&gt;</value>
   </data>
   <data name="JA1003_Title" xml:space="preserve">
     <value>Test method names must be correctly formatted.</value>
@@ -176,6 +176,15 @@
   </data>
   <data name="JA1005_Title" xml:space="preserve">
     <value>Test subject must be instantiated in a valid create method.</value>
+  </data>
+  <data name="JA1006_Description" xml:space="preserve">
+    <value>A test data method's name is incorrectly formatted.</value>
+  </data>
+  <data name="JA1006_MessageFormat" xml:space="preserve">
+    <value>Test data method name must be of the format "&lt;TestMethod&gt;_Data"</value>
+  </data>
+  <data name="JA1006_Title" xml:space="preserve">
+    <value>Test data method names must be correctly formatted.</value>
   </data>
   <data name="JA1008_Description" xml:space="preserve">
     <value>A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll.</value>

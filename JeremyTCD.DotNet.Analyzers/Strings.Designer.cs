@@ -161,7 +161,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test method names must be of the format &quot;&lt;MethodUnderTest&gt;_&lt;TestDescription&gt;.
+        ///   Looks up a localized string similar to Test method name must be of the format &quot;&lt;MethodUnderTest&gt;_&lt;TestDescription&gt;.
         /// </summary>
         public static string JA1003_MessageFormat {
             get {
@@ -232,6 +232,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1005_Title {
             get {
                 return ResourceManager.GetString("JA1005_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test data method&apos;s name is incorrectly formatted..
+        /// </summary>
+        public static string JA1006_Description {
+            get {
+                return ResourceManager.GetString("JA1006_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test data method name must be of the format &quot;&lt;TestMethod&gt;_Data&quot;.
+        /// </summary>
+        public static string JA1006_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1006_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test data method names must be correctly formatted..
+        /// </summary>
+        public static string JA1006_Title {
+            get {
+                return ResourceManager.GetString("JA1006_Title", resourceCulture);
             }
         }
         
