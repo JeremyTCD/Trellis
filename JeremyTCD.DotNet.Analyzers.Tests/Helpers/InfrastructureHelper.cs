@@ -1,23 +1,24 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Xunit;
 
 namespace JeremyTCD.DotNet.Analyzers.Tests
 {
     public static class InfrastructureHelper
     {
-        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference LinqReference = MetadataReference.CreateFromFile(typeof(Expression<>).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference XunitReference = MetadataReference.CreateFromFile(typeof(FactAttribute).GetTypeInfo().Assembly.Location);
-        private static readonly MetadataReference MoqReference = MetadataReference.CreateFromFile(typeof(Mock).GetTypeInfo().Assembly.Location);
+        private static readonly MetadataReference CollectionsReference = MetadataReference.CreateFromFile(typeof(IEnumerable).Assembly.Location);
+        private static readonly MetadataReference GenericCollectionsReference = MetadataReference.CreateFromFile(typeof(IEnumerable<>).Assembly.Location);
+        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference LinqReference = MetadataReference.CreateFromFile(typeof(Expression<>).Assembly.Location);
+        private static readonly MetadataReference XunitReference = MetadataReference.CreateFromFile(typeof(FactAttribute).Assembly.Location);
+        private static readonly MetadataReference MoqReference = MetadataReference.CreateFromFile(typeof(Mock).Assembly.Location);
         private static readonly MetadataReference SystemRuntimeReference = MetadataReference.CreateFromFile("C:/Program Files/dotnet/shared/Microsoft.NETCore.App/2.0.0/System.Runtime.dll");
 
         private static string TestProjectName = "TestProject";
@@ -68,6 +69,8 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 .AddMetadataReference(projectId, LinqReference)
                 .AddMetadataReference(projectId, XunitReference)
                 .AddMetadataReference(projectId, SystemRuntimeReference)
+                .AddMetadataReference(projectId, CollectionsReference)
+                .AddMetadataReference(projectId, GenericCollectionsReference)
                 .AddMetadataReference(projectId, MoqReference);
 
             int count = 0;
