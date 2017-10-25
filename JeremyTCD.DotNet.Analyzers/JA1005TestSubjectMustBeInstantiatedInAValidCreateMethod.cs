@@ -69,10 +69,8 @@ namespace JeremyTCD.DotNet.Analyzers
             string mockClassUnderTestTypeName = $"Moq.Mock<{classUnderTestType.ToDisplayString()}>";
             string createClassUnderTestMethodName = $"Create{classUnderTestName}";
             string createMockClassUnderTestMethodName = $"CreateMock{classUnderTestName}";
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = classDeclaration.
-                DescendantNodes().
-                OfType<MethodDeclarationSyntax>().
-                Where(m => TestingHelper.IsTestMethod(m, context.SemanticModel));
+            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = TestingHelper.
+                GetTestMethodDeclarations(compilationUnit, context.SemanticModel);
 
             IEnumerable<ExpressionSyntax> testMethodExpressions = testMethodDeclarations.
                 SelectMany(m => m.DescendantNodes().OfType<ExpressionSyntax>());

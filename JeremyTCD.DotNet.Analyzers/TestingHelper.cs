@@ -64,6 +64,14 @@ namespace JeremyTCD.DotNet.Analyzers
             return testClassDeclaration.Identifier.ValueText.EndsWith("EndToEndTests");
         }
 
+        public static IEnumerable<MethodDeclarationSyntax> GetTestMethodDeclarations(CompilationUnitSyntax compilationUnit, SemanticModel semanticModel)
+        {
+            return compilationUnit.
+                DescendantNodes().
+                OfType<MethodDeclarationSyntax>().
+                Where(m => IsTestMethod(m, semanticModel));
+        }
+
         public static bool IsTestMethod(MethodDeclarationSyntax methodDeclaration, SemanticModel semanticModel)
         {
             IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;

@@ -48,10 +48,8 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Find test methods
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = compilationUnit.
-                DescendantNodes().
-                OfType<MethodDeclarationSyntax>().
-                Where(m => TestingHelper.IsTestMethod(m, semanticModel));
+            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = TestingHelper.
+                GetTestMethodDeclarations(compilationUnit, semanticModel);
             if (testMethodDeclarations.Count() == 0)
             {
                 return;
