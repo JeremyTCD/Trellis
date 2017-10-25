@@ -152,6 +152,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A test method&apos;s name is incorrectly formatted..
+        /// </summary>
+        public static string JA1003_Description {
+            get {
+                return ResourceManager.GetString("JA1003_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method names must be of the format &quot;&lt;MethodUnderTest&gt;_&lt;TestDescription&gt;.
+        /// </summary>
+        public static string JA1003_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1003_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method names must be correctly formatted..
+        /// </summary>
+        public static string JA1003_Title {
+            get {
+                return ResourceManager.GetString("JA1003_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A test method mock local variable&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1004_Description {
