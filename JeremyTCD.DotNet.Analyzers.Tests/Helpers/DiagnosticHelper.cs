@@ -23,6 +23,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
             var projects = new HashSet<Project>();
             foreach (var document in documents)
             {
+               // TODO should check for compiler diagnostics first since they can affect analyzer diagnostics
+               // IEnumerable<Diagnostic> compilerDiagnostics = document.GetSemanticModelAsync().Result.GetDiagnostics();
+
                 projects.Add(document.Project);
             }
 
@@ -30,7 +33,6 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
             foreach (var project in projects)
             {
                 CompilationWithAnalyzers compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
-                // TODO should check for compiler diagnostics first since they can affect analyzer diagnostics
                 IEnumerable<Diagnostic> diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
                 foreach (Diagnostic diagnostic in diagnostics)
                 {
