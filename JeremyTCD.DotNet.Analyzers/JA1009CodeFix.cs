@@ -70,7 +70,8 @@ namespace JeremyTCD.DotNet.Analyzers
                     syntaxGenerator,
                     (oldExpression.Type as GenericNameSyntax).TypeArgumentList.Arguments.First().ToString(),
                     mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText,
-                    oldExpression.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault()?.Arguments);
+                    oldExpression.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault()?.Arguments).
+                WithTriviaFrom(oldExpression);
             documentEditor.ReplaceNode(oldExpression, newExpression);
 
             return documentEditor.GetChangedDocument();
