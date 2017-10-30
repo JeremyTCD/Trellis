@@ -64,7 +64,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 //after applying all of the code fixes, compare the resulting string to the inputted one
                 string result = InfrastructureHelper.GetStringFromDocument(document);
                 string expected = File.ReadAllText($"{sourcesFolder}/After/{document.Name}").Replace(".After", ".Before");
-                Assert.Equal(expected, result);
+                Assert.Equal(expected, result, ignoreLineEndingDifferences: true);
             }
         }
     }
