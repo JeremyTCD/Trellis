@@ -186,6 +186,15 @@
   <data name="JA1006_Title" xml:space="preserve">
     <value>Test data method names must be correctly formatted.</value>
   </data>
+  <data name="JA1007_Description" xml:space="preserve">
+    <value>A documented exception throwing outcome has no matching unit test.</value>
+  </data>
+  <data name="JA1007_MessageFormat" xml:space="preserve">
+    <value>Exception throwing outcome has no matching unit test.</value>
+  </data>
+  <data name="JA1007_Title" xml:space="preserve">
+    <value>Documented exception outcomes must have matching unit tests.</value>
+  </data>
   <data name="JA1008_Description" xml:space="preserve">
     <value>A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll.</value>
   </data>
@@ -203,6 +212,15 @@
   </data>
   <data name="JA1009_Title" xml:space="preserve">
     <value>MockRepository.Create must be used instead of Mock&lt;T&gt;'s constructor.</value>
+  </data>
+  <data name="JA1010_Description" xml:space="preserve">
+    <value>A test method's members are incorrectly ordered.</value>
+  </data>
+  <data name="JA1010_MessageFormat" xml:space="preserve">
+    <value>Test method members must be correctly ordered.</value>
+  </data>
+  <data name="JA1010_Title" xml:space="preserve">
+    <value>Test method members must be correctly ordered.</value>
   </data>
   <data name="JA1100_Description" xml:space="preserve">
     <value>A public property or method is not virtual.</value>

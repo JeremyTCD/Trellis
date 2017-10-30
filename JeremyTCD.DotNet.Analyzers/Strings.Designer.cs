@@ -263,6 +263,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A documented exception throwing outcome has no matching unit test..
+        /// </summary>
+        public static string JA1007_Description {
+            get {
+                return ResourceManager.GetString("JA1007_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception throwing outcome has no matching unit test..
+        /// </summary>
+        public static string JA1007_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1007_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Documented exception outcomes must have matching unit tests..
+        /// </summary>
+        public static string JA1007_Title {
+            get {
+                return ResourceManager.GetString("JA1007_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll..
         /// </summary>
         public static string JA1008_Description {
@@ -313,6 +340,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1009_Title {
             get {
                 return ResourceManager.GetString("JA1009_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test method&apos;s members are incorrectly ordered..
+        /// </summary>
+        public static string JA1010_Description {
+            get {
+                return ResourceManager.GetString("JA1010_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method members must be correctly ordered..
+        /// </summary>
+        public static string JA1010_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1010_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method members must be correctly ordered..
+        /// </summary>
+        public static string JA1010_Title {
+            get {
+                return ResourceManager.GetString("JA1010_Title", resourceCulture);
             }
         }
         
