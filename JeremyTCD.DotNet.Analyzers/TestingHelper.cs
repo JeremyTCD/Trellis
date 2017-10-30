@@ -54,6 +54,11 @@ namespace JeremyTCD.DotNet.Analyzers
             return testClassDeclaration.Identifier.ValueText.EndsWith("UnitTests");
         }
 
+        public static IEnumerable<IMethodSymbol> GetMethodMembers(ITypeSymbol targetClass)
+        {
+            return targetClass.GetMembers().Where(m => m is IMethodSymbol).Cast<IMethodSymbol>();
+        }
+
         public static bool IsIntegrationTestClass(ClassDeclarationSyntax testClassDeclaration)
         {
             return testClassDeclaration.Identifier.ValueText.EndsWith("IntegrationTests");
@@ -72,8 +77,13 @@ namespace JeremyTCD.DotNet.Analyzers
                 Where(m => IsTestMethod(m, semanticModel));
         }
 
-        public static bool IsTestMethod(MethodDeclarationSyntax methodDeclaration, SemanticModel semanticModel)
+        public static bool IsTestMethod(SyntaxNode methodDeclaration, SemanticModel semanticModel)
         {
+            if (!(methodDeclaration is MethodDeclarationSyntax))
+            {
+                return false;
+            }
+
             IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;
             if (methodSymbol == null)
             {
@@ -81,6 +91,12 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return IsTestMethod(methodSymbol);
+        }
+
+        public static bool IsTestDataMethod(SyntaxNode methodDeclaration)
+        {
+            // TODO more robust way to identify data methods
+            return methodDeclaration is MethodDeclarationSyntax && (methodDeclaration as MethodDeclarationSyntax).Identifier.ValueText.EndsWith("_Data");
         }
 
         public static bool IsTestMethod(IMethodSymbol methodSymbol)
@@ -105,11 +121,11 @@ namespace JeremyTCD.DotNet.Analyzers
             SymbolHelper.TryGetTypeSymbol(classUnderTestName, globalNamespace, types);
 
             // More than one types with the same name (from different namespaces)
-            if(types.Count() > 1)
+            if (types.Count() > 1)
             {
                 string classNamespaceName = testClassDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
 
-                foreach(ITypeSymbol type in types)
+                foreach (ITypeSymbol type in types)
                 {
                     if (classNamespaceName.StartsWith(type.ContainingNamespace.ToString()))
                     {
@@ -152,6 +168,68 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return methodSymbol.OriginalDefinition.ToDisplayString() == "Moq.MockFactory.Create<T>()";
+        }
+
+        public static List<SyntaxNode> OrderTestClassMembers(ClassDeclarationSyntax testClassDeclaration, ClassDeclarationSyntax classUnderTestDeclaration,
+            SemanticModel semanticModel)
+        {
+            IEnumerable<SyntaxNode> testClassMembers = testClassDeclaration.ChildNodes();
+            IEnumerable<MethodDeclarationSyntax> testClassMethodDeclarations = testClassMembers.OfType<MethodDeclarationSyntax>();
+
+            // TODO property, indexer tests
+            IEnumerable<MethodDeclarationSyntax> classUnderTestMethodDeclarations = classUnderTestDeclaration.ChildNodes().OfType<MethodDeclarationSyntax>();
+
+            // TODO not very efficient, also does not handle properties etc
+            List<SyntaxNode> result = new List<SyntaxNode>();
+            result.AddRange(testClassMembers.OfType<FieldDeclarationSyntax>().OrderBy(f => f.Declaration.Variables.First().Identifier.ValueText));
+            result.AddRange(testClassMembers.OfType<ConstructorDeclarationSyntax>());
+
+            IEnumerable<MethodDeclarationSyntax> testAndDataMethodDeclarations = testClassMethodDeclarations.
+                Where(m => IsTestMethod(m, semanticModel) || IsTestDataMethod(m));
+            if (testAndDataMethodDeclarations.Count() > 0)
+            {
+                if (classUnderTestMethodDeclarations.Count() == 0)
+                {
+                    result.AddRange(testAndDataMethodDeclarations);
+                }
+                else
+                {
+                    foreach (MethodDeclarationSyntax classUnderTestMethod in classUnderTestMethodDeclarations)
+                    {
+                        string testMethodPrefix = $"{classUnderTestMethod.Identifier.ValueText}_";
+                        IEnumerable<MethodDeclarationSyntax> classUnderTestMethodTestAndDataMethodDeclarations = testAndDataMethodDeclarations.
+                            Where(t => t.Identifier.ValueText.StartsWith(testMethodPrefix));
+                        IEnumerable<MethodDeclarationSyntax> classUnderTestMethodDataMethodDeclarations = classUnderTestMethodTestAndDataMethodDeclarations.
+                            Where(t => IsTestDataMethod(t));
+                        IEnumerable<MethodDeclarationSyntax> classUnderTestMethodTestMethodDeclarations = classUnderTestMethodTestAndDataMethodDeclarations.
+                            Except(classUnderTestMethodDataMethodDeclarations);
+
+                        foreach (MethodDeclarationSyntax classUnderTestMethodTestMethodDeclaration in classUnderTestMethodTestMethodDeclarations)
+                        {
+                            result.Add(classUnderTestMethodTestMethodDeclaration);
+                            MethodDeclarationSyntax dataMethodDeclaration = classUnderTestMethodDataMethodDeclarations.
+                                FirstOrDefault(c => c.Identifier.ValueText == classUnderTestMethodTestMethodDeclaration.Identifier.ValueText + "_Data");
+                            if (dataMethodDeclaration != null)
+                            {
+                                result.Add(dataMethodDeclaration);
+                            }
+                        }
+                    }
+                }
+            }
+
+            result.AddRange(testClassMembers.
+                OfType<MethodDeclarationSyntax>().
+                Except(testAndDataMethodDeclarations).
+                OrderBy(m => m.Identifier.ValueText));
+            result.AddRange(testClassMembers.OfType<ClassDeclarationSyntax>().OrderBy(c => c.Identifier.ValueText));
+
+            if (result.Count() != testClassMembers.Count())
+            {
+                result.AddRange(testClassMembers.Except(result));
+            }
+
+            return result;
         }
     }
 }
