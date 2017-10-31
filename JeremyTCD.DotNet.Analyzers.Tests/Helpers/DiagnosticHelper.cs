@@ -17,9 +17,10 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
             return GetDiagnosticsByDocument(files, analyzer).Values.SelectMany(d => d);
         }
 
-        public static Dictionary<Document, List<Diagnostic>> GetDiagnosticsByDocument(IEnumerable<string> files, DiagnosticAnalyzer analyzer)
+        public static Dictionary<Document, List<Diagnostic>> GetDiagnosticsByDocument(IEnumerable<string> files, DiagnosticAnalyzer analyzer, 
+            string projectName = "ProjectName")
         {
-            IEnumerable<Document> documents = InfrastructureHelper.CreateDocuments(files);
+            IEnumerable<Document> documents = InfrastructureHelper.CreateDocuments(files, projectName);
             var projects = new HashSet<Project>();
             foreach (var document in documents)
             {
