@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1000CodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1001CodeFixProvider)), Shared]
     public class JA1001CodeFixProvider : CodeFixProvider
     {
         /// <inheritdoc/>

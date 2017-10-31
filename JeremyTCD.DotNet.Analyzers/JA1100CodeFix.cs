@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1004CodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(JA1100CodeFixProvider)), Shared]
     public class JA1100CodeFixProvider : CodeFixProvider
     {
         /// <inheritdoc/>
