@@ -75,11 +75,9 @@ namespace JeremyTCD.DotNet.Analyzers
                     documentEditor.InsertMembers(classDeclaration, 0, new[] { TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator) });
                 }
 
-                MethodDeclarationSyntax newCreateMethodDeclaration = CreateMethodDeclaration(
+                MethodDeclarationSyntax newCreateMethodDeclaration = TestingHelper.CreateCreateMethodDeclaration(
                     classUnderTest,
                     syntaxGenerator,
-                    methodName,
-                    classUnderTestConstructorParameters,
                     createMockCreateMethod);
 
                 MethodDeclarationSyntax existingCreateMethodDeclaration = classDeclaration.
@@ -159,33 +157,6 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return syntaxGenerator.InvocationExpression(syntaxGenerator.IdentifierName(createMethodName), createMethodArguments) as InvocationExpressionSyntax;
-        }
-
-        // TODO mock repository return expressions
-        private static MethodDeclarationSyntax CreateMethodDeclaration(INamedTypeSymbol classUnderTestSymbol,
-            SyntaxGenerator syntaxGenerator, string methodName, IEnumerable<IParameterSymbol> classUnderTestConstructorParameters,
-            bool createMockCreateMethod)
-        {
-            IEnumerable<SyntaxNode> parameterSyntaxes = classUnderTestConstructorParameters.
-                Select(p => syntaxGenerator.ParameterDeclaration(p, syntaxGenerator.DefaultExpression(p.Type)));
-
-            IEnumerable<SyntaxNode> resultExpressionArguments = parameterSyntaxes.
-                Select(p => syntaxGenerator.Argument(syntaxGenerator.IdentifierName((p as ParameterSyntax).Identifier.ValueText)));
-
-            SyntaxNode classUnderTestCreation = createMockCreateMethod ?
-                TestingHelper.CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, classUnderTestSymbol.Name, "_mockRepository", resultExpressionArguments)
-                : syntaxGenerator.ObjectCreationExpression(classUnderTestSymbol, resultExpressionArguments);
-
-            SyntaxNode returnStatement = syntaxGenerator.ReturnStatement(classUnderTestCreation);
-
-            SyntaxNode classUnderTestName = syntaxGenerator.TypeExpression(classUnderTestSymbol);
-
-            return syntaxGenerator.MethodDeclaration(
-                   methodName,
-                   parameters: parameterSyntaxes,
-                   returnType: createMockCreateMethod ? syntaxGenerator.GenericName("Mock", classUnderTestName) : classUnderTestName,
-                   accessibility: Accessibility.Private,
-                   statements: new[] { returnStatement }) as MethodDeclarationSyntax;
         }
     }
 }
