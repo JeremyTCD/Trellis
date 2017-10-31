@@ -50,14 +50,14 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 FixAllProvider fixAllProvider = _codeFixProvider.GetFixAllProvider();
                 FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider = new FixMultipleDiagnosticProvider(keyValuePair.Value);
                 FixAllContext fixAllContext = new FixAllContext(
-                    document, 
-                    _codeFixProvider, 
-                    FixAllScope.Document, 
+                    document,
+                    _codeFixProvider,
+                    FixAllScope.Document,
                     _codeFixProvider.GetType().Name,
                     _codeFixProvider.FixableDiagnosticIds,
-                    fixMultipleDiagnosticProvider, 
+                    fixMultipleDiagnosticProvider,
                     CancellationToken.None);
-                // Need to use custom assembly cause of this issue: https://github.com/dotnet/roslyn/issues/22710
+                // Can't batch fix because of this issue: https://github.com/dotnet/roslyn/issues/22710
                 CodeAction codeAction = fixAllProvider.GetFixAsync(fixAllContext).Result;
                 document = CodeFixHelper.ApplyFix(document, codeAction);
 
@@ -65,6 +65,42 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 string result = InfrastructureHelper.GetStringFromDocument(document);
                 string expected = File.ReadAllText($"{sourcesFolder}/After/{document.Name}").Replace(".After", ".Before");
                 Assert.Equal(expected, result, ignoreLineEndingDifferences: true);
+            }
+        }
+
+        public void VerifyFilesAdded(string sourcesFolder, string projectName, int codeFixIndex = 0)
+        {
+            IEnumerable<string> beforeFiles = Directory.GetFiles($"{sourcesFolder}/Before");
+            Dictionary<Document, List<Diagnostic>> diagnostics = DiagnosticHelper.GetDiagnosticsByDocument(beforeFiles, _diagnosticAnalyzer, projectName);
+
+            foreach (KeyValuePair<Document, List<Diagnostic>> keyValuePair in diagnostics)
+            {
+                Document document = keyValuePair.Key;
+
+                List<CodeAction> actions = new List<CodeAction>();
+                CodeFixContext context = new CodeFixContext(document, keyValuePair.Value[0], (a, d) => actions.Add(a), CancellationToken.None);
+                _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
+
+                if (!actions.Any())
+                {
+                    break;
+                }
+
+                IEnumerable<CodeActionOperation> operations = actions.ElementAt(codeFixIndex).GetOperationsAsync(CancellationToken.None).Result;
+                Solution newSolution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
+
+                // After applying all of the code fixes, compare the resulting string to the inputted one
+                IEnumerable<string> addedFiles = Directory.GetFiles($"{sourcesFolder}/Added");
+                foreach (string file in addedFiles)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    string expected = File.ReadAllText(file);
+
+                    Document addedDocument = newSolution.Projects.SelectMany(p => p.Documents.Where(d => d.Name == fileName)).FirstOrDefault();
+                    Assert.NotNull(addedDocument);
+                    string result = InfrastructureHelper.GetStringFromDocument(addedDocument);
+                    Assert.Equal(expected, result, ignoreLineEndingDifferences: true);
+                }
             }
         }
     }
