@@ -49,20 +49,12 @@ namespace JeremyTCD.DotNet.Analyzers
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
             MethodDeclarationSyntax oldMethodDeclaration = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
-            ExpressionStatementSyntax newMockRepositoryVerifyAllExpression = CreateMockRepositoryVerifyAllExpression(syntaxGenerator);
+            ExpressionStatementSyntax newMockRepositoryVerifyAllExpression = TestingHelper.CreateMockRepositoryVerifyAllExpression(syntaxGenerator);
             MethodDeclarationSyntax newMethodDeclaration = oldMethodDeclaration.AddBodyStatements(newMockRepositoryVerifyAllExpression);
 
             documentEditor.ReplaceNode(oldMethodDeclaration, newMethodDeclaration);
 
             return documentEditor.GetChangedDocument();
-        }
-
-        private static ExpressionStatementSyntax CreateMockRepositoryVerifyAllExpression(SyntaxGenerator syntaxGenerator)
-        {
-            // TODO assumes that a MockRepository instances named _mockRepository exists
-            SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(syntaxGenerator.IdentifierName("_mockRepository"), "VerifyAll");
-            SyntaxNode invocationExpression = syntaxGenerator.InvocationExpression(memberAccessExpression);
-            return syntaxGenerator.ExpressionStatement(invocationExpression) as ExpressionStatementSyntax;
         }
     }
 }
