@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System;
@@ -230,6 +231,186 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return result;
+        }
+
+        public static MethodDeclarationSyntax CreateCreateMethodDeclaration(INamedTypeSymbol classUnderTest,
+            SyntaxGenerator syntaxGenerator,
+            bool createMockCreateMethod)
+        {
+            IMethodSymbol classUnderTestConstructor = classUnderTest.Constructors.OrderByDescending(c => c.Parameters.Count()).First();
+            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = classUnderTestConstructor.Parameters;
+
+            IEnumerable<SyntaxNode> parameterSyntaxes = classUnderTestConstructorParameters.
+                Select(p => syntaxGenerator.ParameterDeclaration(p, syntaxGenerator.DefaultExpression(p.Type)));
+
+            IEnumerable<SyntaxNode> resultExpressionArguments = parameterSyntaxes.
+                Select(p => syntaxGenerator.Argument(syntaxGenerator.IdentifierName((p as ParameterSyntax).Identifier.ValueText)));
+
+            SyntaxNode classUnderTestCreation = createMockCreateMethod ?
+                CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, classUnderTest.Name, "_mockRepository", resultExpressionArguments)
+                : syntaxGenerator.ObjectCreationExpression(classUnderTest, resultExpressionArguments);
+
+            SyntaxNode returnStatement = syntaxGenerator.ReturnStatement(classUnderTestCreation);
+
+            SyntaxNode classUnderTestName = syntaxGenerator.TypeExpression(classUnderTest);
+
+            return syntaxGenerator.MethodDeclaration(
+                   createMockCreateMethod ? $"CreateMock{classUnderTest.Name}" : $"Create{classUnderTest.Name}",
+                   parameters: parameterSyntaxes,
+                   returnType: createMockCreateMethod ? syntaxGenerator.GenericName("Mock", classUnderTestName) : classUnderTestName,
+                   accessibility: Accessibility.Private,
+                   statements: new[] { returnStatement }) as MethodDeclarationSyntax;
+        }
+
+        /*
+         * [Fact]
+         * public void <MethodName>_<Description>()
+         * {
+         *      // Arrange
+         *      ClassUnderTest testSubject = CreateClassUnderTest();
+         *
+         *      // Act
+         *      testSubject.<MethodName>(<default values>);
+         *      
+         *      // Assert
+         *      _mockRepository.VerifyAll();
+         * }
+         */
+        public static MethodDeclarationSyntax CreateTestMethod(
+            string classUnderTestName,
+            string testMethodName,
+            IMethodSymbol methodUnderTest,
+            SyntaxGenerator syntaxGenerator)
+        {
+            SyntaxTrivia indentationTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "    ");
+            SyntaxTrivia endOfLineTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\n");
+
+            // TODO assumes create method exists
+            SyntaxNode testSubjectLocalDeclaration = syntaxGenerator.
+                LocalDeclarationStatement(
+                    SyntaxFactory.IdentifierName(classUnderTestName),
+                    "testSubject",
+                    syntaxGenerator.InvocationExpression(SyntaxFactory.IdentifierName($"Create{classUnderTestName}"))).
+                 WithLeadingTrivia(
+                    indentationTrivia,
+                    SyntaxFactory.SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia, "// Arrange"),
+                    endOfLineTrivia,
+                    indentationTrivia);
+
+            IEnumerable<SyntaxNode> methodUnderTestArgumentSyntaxes = methodUnderTest.
+                Parameters.
+                Select(p => syntaxGenerator.Argument(syntaxGenerator.DefaultExpression(p.Type)));
+
+            SyntaxNode methodUnderTestInvocation = syntaxGenerator.
+                InvocationExpression(syntaxGenerator.MemberAccessExpression(
+                    SyntaxFactory.IdentifierName("testSubject"),
+                    methodUnderTest.Name),
+                    methodUnderTestArgumentSyntaxes).
+                 WithLeadingTrivia(
+                    endOfLineTrivia,
+                    indentationTrivia,
+                    SyntaxFactory.SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia, "// Act"),
+                    endOfLineTrivia,
+                    indentationTrivia);
+
+            SyntaxNode verifyAllInvocation = CreateMockRepositoryVerifyAllExpression(syntaxGenerator).
+                 WithLeadingTrivia(
+                    endOfLineTrivia,
+                    indentationTrivia,
+                    SyntaxFactory.SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia, "// Assert"),
+                    endOfLineTrivia,
+                    indentationTrivia);
+
+            MethodDeclarationSyntax methodDeclaration = syntaxGenerator.
+                MethodDeclaration(testMethodName,
+                    accessibility: Accessibility.Public,
+                    statements: new[] { testSubjectLocalDeclaration, methodUnderTestInvocation, verifyAllInvocation }) as MethodDeclarationSyntax;
+
+            return methodDeclaration.AddAttributeLists(syntaxGenerator.Attribute("Fact") as AttributeListSyntax);
+        }
+
+        /*
+         * [Fact]
+         * public void <MethodName>_<Description>()
+         * {
+         *      // Arrange
+         *      ClassUnderTest testSubject = CreateClassUnderTest();
+         *
+         *      // Act and assert
+         *      <Exception> result = Assert.Throws<<Exception>>(() => testSubject.<MethodName>(<default values>));
+         *      _mockRepository.VerifyAll();
+         * }
+         */
+        public static MethodDeclarationSyntax CreateExceptionTestMethod(
+            string exceptionName,
+            string classUnderTestName,
+            string testMethodName,
+            IMethodSymbol methodUnderTest,
+            SyntaxGenerator syntaxGenerator)
+        {
+            SyntaxTrivia indentationTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "    ");
+            SyntaxTrivia endOfLineTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\n");
+
+            // TODO assumes create method exists
+            SyntaxNode testSubjectLocalDeclaration = syntaxGenerator.
+                LocalDeclarationStatement(
+                    SyntaxFactory.IdentifierName(classUnderTestName),
+                    "testSubject",
+                    syntaxGenerator.InvocationExpression(SyntaxFactory.IdentifierName($"Create{classUnderTestName}"))).
+                 WithLeadingTrivia(
+                    indentationTrivia,
+                    SyntaxFactory.SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia, "// Arrange"),
+                    endOfLineTrivia,
+                    indentationTrivia);
+
+            IEnumerable<SyntaxNode> methodUnderTestArgumentSyntaxes = methodUnderTest.
+                Parameters.
+                Select(p => syntaxGenerator.Argument(syntaxGenerator.DefaultExpression(p.Type)));
+
+            SyntaxNode methodUnderTestInvocation = syntaxGenerator.
+                InvocationExpression(syntaxGenerator.MemberAccessExpression(
+                    SyntaxFactory.IdentifierName("testSubject"),
+                    methodUnderTest.Name),
+                    methodUnderTestArgumentSyntaxes);
+
+            SyntaxNode lambdaExpression = syntaxGenerator.VoidReturningLambdaExpression(methodUnderTestInvocation);
+
+            SyntaxNode throwsMemberAccessExpression = syntaxGenerator.
+                MemberAccessExpression(
+                    SyntaxFactory.IdentifierName("Assert"),
+                    syntaxGenerator.GenericName("Throws", SyntaxFactory.IdentifierName(exceptionName)));
+
+            SyntaxNode throwsInvocation = syntaxGenerator.InvocationExpression(throwsMemberAccessExpression, lambdaExpression);
+
+            SyntaxNode resultLocalDeclaration = syntaxGenerator.
+                LocalDeclarationStatement(
+                    SyntaxFactory.IdentifierName(exceptionName),
+                    "result",
+                    throwsInvocation).
+                 WithLeadingTrivia(
+                    endOfLineTrivia,
+                    indentationTrivia,
+                    SyntaxFactory.SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia, "// Act and assert"),
+                    endOfLineTrivia,
+                    indentationTrivia);
+
+            SyntaxNode verifyAllInvocation = CreateMockRepositoryVerifyAllExpression(syntaxGenerator).
+                 WithLeadingTrivia(indentationTrivia);
+
+            MethodDeclarationSyntax methodDeclaration = syntaxGenerator.
+                MethodDeclaration(testMethodName,
+                    accessibility: Accessibility.Public,
+                    statements: new[] { testSubjectLocalDeclaration, resultLocalDeclaration, verifyAllInvocation }) as MethodDeclarationSyntax;
+
+            return methodDeclaration.AddAttributeLists(syntaxGenerator.Attribute("Fact") as AttributeListSyntax);
+        }
+
+        public static ExpressionStatementSyntax CreateMockRepositoryVerifyAllExpression(SyntaxGenerator syntaxGenerator)
+        {
+            // TODO assumes that a MockRepository instances named _mockRepository exists
+            SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(syntaxGenerator.IdentifierName("_mockRepository"), "VerifyAll");
+            SyntaxNode invocationExpression = syntaxGenerator.InvocationExpression(memberAccessExpression);
+            return syntaxGenerator.ExpressionStatement(invocationExpression) as ExpressionStatementSyntax;
         }
     }
 }
