@@ -51,10 +51,7 @@ namespace JeremyTCD.DotNet.Analyzers
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
             // Add using for moq if required
-            if (!compilationUnit.Usings.Any(u => u.Name.ToString() == "Moq"))
-            {
-                documentEditor.InsertBefore(compilationUnit.Usings[0], new[] { SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Moq")) });
-            }
+            SyntaxHelper.TryInsertUsing(compilationUnit, "Moq", documentEditor);
 
             // Add mock repository if required
             VariableDeclarationSyntax mockRepositoryVariableDeclaration = TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, documentEditor.SemanticModel);
