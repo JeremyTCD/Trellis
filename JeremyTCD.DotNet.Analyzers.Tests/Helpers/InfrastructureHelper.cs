@@ -21,8 +21,6 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         private static readonly MetadataReference MoqReference = MetadataReference.CreateFromFile(typeof(Mock).Assembly.Location);
         private static readonly MetadataReference SystemRuntimeReference = MetadataReference.CreateFromFile("C:/Program Files/dotnet/shared/Microsoft.NETCore.App/2.0.0/System.Runtime.dll");
 
-        private static string TestProjectName = "TestProject";
-
         /// <summary>
         /// Given a document, turn it into a string based on the syntax root
         /// </summary>
@@ -39,9 +37,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         /// <param name="files">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Tuple containing the Documents produced from the sources and their TextSpans if relevant</returns>
-        public static Document[] CreateDocuments(IEnumerable<string> files)
+        public static Document[] CreateDocuments(IEnumerable<string> files, string projectName)
         {
-            var project = CreateProject(files);
+            var project = CreateProject(files, projectName);
             var documents = project.Documents.ToArray();
 
             if (files.Count() != documents.Length)
@@ -58,20 +56,31 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         /// <param name="files">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
-        public static Project CreateProject(IEnumerable<string> files)
+        public static Project CreateProject(IEnumerable<string> files, string projectName)
         {
-            var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
+            string testProjectName = $"{projectName}.Tests";
+            ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
+            ProjectId testProjectId = ProjectId.CreateNewId(debugName: testProjectName);
 
             var solution = new AdhocWorkspace()
                 .CurrentSolution
-                .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
+                .AddProject(projectId, projectName, projectName, LanguageNames.CSharp)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, LinqReference)
                 .AddMetadataReference(projectId, XunitReference)
                 .AddMetadataReference(projectId, SystemRuntimeReference)
                 .AddMetadataReference(projectId, CollectionsReference)
                 .AddMetadataReference(projectId, GenericCollectionsReference)
-                .AddMetadataReference(projectId, MoqReference);
+                .AddMetadataReference(projectId, MoqReference)
+                .AddProject(testProjectId, testProjectName, testProjectName, LanguageNames.CSharp)
+                .AddProjectReference(testProjectId, new ProjectReference(projectId))
+                .AddMetadataReference(testProjectId, CorlibReference)
+                .AddMetadataReference(testProjectId, LinqReference)
+                .AddMetadataReference(testProjectId, XunitReference)
+                .AddMetadataReference(testProjectId, SystemRuntimeReference)
+                .AddMetadataReference(testProjectId, CollectionsReference)
+                .AddMetadataReference(testProjectId, GenericCollectionsReference)
+                .AddMetadataReference(testProjectId, MoqReference);
 
             int count = 0;
             foreach (var file in files)
