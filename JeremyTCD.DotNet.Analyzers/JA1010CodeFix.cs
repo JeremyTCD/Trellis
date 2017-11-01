@@ -62,27 +62,8 @@ namespace JeremyTCD.DotNet.Analyzers
                 OrderTestClassMembers(oldTestClassDeclaration, classUnderTestDeclaration, semanticModel).
                 Cast<MemberDeclarationSyntax>().ToArray(); ;
 
-            // Fix line gap
-            SyntaxTrivia endOfLineTrivia = SyntaxHelper.GetEndOfLineTrivia(compilationUnit);
-            SyntaxTrivia indentation = SyntaxHelper.GetIndentationTrivia(orderedTestClassMembers[0]);
-
-            for (int i = 0; i < orderedTestClassMembers.Length; i++)
-            {
-                MemberDeclarationSyntax member = orderedTestClassMembers[i];
-                if (i == 0)
-                {
-                    // Remove any leading new line trivia
-                    orderedTestClassMembers[i] = member.
-                        WithLeadingTrivia(indentation).
-                        WithTrailingTrivia(endOfLineTrivia);
-                }
-                else
-                {
-                    orderedTestClassMembers[i] = member.
-                        WithLeadingTrivia(endOfLineTrivia, indentation).
-                        WithTrailingTrivia(endOfLineTrivia);
-                }
-            }
+            // Fix trivia
+            SyntaxHelper.FixMemberTrivia(orderedTestClassMembers);
 
             // Re-construct test class with methods in order consistent with class under test methods
             ClassDeclarationSyntax newTestClassDeclaration = oldTestClassDeclaration.
