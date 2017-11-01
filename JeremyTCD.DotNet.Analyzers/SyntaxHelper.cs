@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
@@ -16,8 +17,13 @@ namespace JeremyTCD.DotNet.Analyzers
             }
         }
 
-        public static SyntaxTrivia GetEndOfLineTrivia(SyntaxNode syntaxNode)
+        public static SyntaxTrivia GetEndOfLineTrivia(SyntaxNode syntaxNode = null)
         {
+            if(syntaxNode == null)
+            {
+                return SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\n");
+            }
+
             SyntaxTrivia endOfLineTrivia = syntaxNode.
                 DescendantTokens().
                 SelectMany(token => token.TrailingTrivia).
@@ -31,8 +37,13 @@ namespace JeremyTCD.DotNet.Analyzers
             return endOfLineTrivia;
         }
 
-        public static SyntaxTrivia GetIndentationTrivia(SyntaxNode syntaxNode)
+        public static SyntaxTrivia GetIndentationTrivia(SyntaxNode syntaxNode = null)
         {
+            if(syntaxNode == null)
+            {
+                return SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "    ");
+            }
+
             SyntaxTrivia indentation = syntaxNode.
                 GetLeadingTrivia().
                 Where(t => t.Kind() == SyntaxKind.WhitespaceTrivia).
@@ -44,6 +55,30 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             return indentation;
+        }
+
+        public static void FixMemberTrivia(MemberDeclarationSyntax[] members)
+        {
+            SyntaxTrivia endOfLineTrivia = GetEndOfLineTrivia();
+            SyntaxTrivia indentation = GetIndentationTrivia(members[0]);
+
+            for (int i = 0; i < members.Length; i++)
+            {
+                MemberDeclarationSyntax member = members[i];
+                if (i == 0)
+                {
+                    // Remove any leading new line trivia
+                    members[i] = member.
+                        WithLeadingTrivia(indentation).
+                        WithTrailingTrivia(endOfLineTrivia);
+                }
+                else
+                {
+                    members[i] = member.
+                        WithLeadingTrivia(endOfLineTrivia, indentation).
+                        WithTrailingTrivia(endOfLineTrivia);
+                }
+            }
         }
     }
 }
