@@ -101,37 +101,14 @@ namespace JeremyTCD.DotNet.Analyzers
             string fixData = string.Empty;
             foreach (IMethodSymbol methodUnderTest in TestingHelper.GetMethodMembers(classUnderTest))
             {
-                SyntaxNode methodUnderTestDeclaration = methodUnderTest.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                MethodDeclarationSyntax methodUnderTestDeclaration = methodUnderTest.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
                 if (methodUnderTestDeclaration == null)
                 {
                     continue;
                 }
-                // Check if documentation is inherited
-                DocumentationCommentTriviaSyntax documentationCommentTrivia = DocumentationHelper.GetDocumentCommentTrivia(methodUnderTestDeclaration);
-                if (documentationCommentTrivia == null)
-                {
-                    continue;
-                }
-                XmlNodeSyntax inheritdocNode = DocumentationHelper.GetXmlNodeSyntaxes(documentationCommentTrivia, "inheritdoc").FirstOrDefault();
-                if (inheritdocNode != null)
-                {
-                    documentationCommentTrivia = DocumentationHelper.GetInheritedDocumentCommentTrivia(methodUnderTest);
-                    if (documentationCommentTrivia == null)
-                    {
-                        continue;
-                    }
-                }
 
                 // Get exception elements that are not empty
-                List<XmlElementSyntax> exceptionElements = DocumentationHelper.
-                    GetXmlNodeSyntaxes(documentationCommentTrivia, "exception").
-                    Where(x => x is XmlElementSyntax).
-                    Cast<XmlElementSyntax>().
-                    ToList();
-                if (exceptionElements.Count() == 0)
-                {
-                    continue;
-                }
+                List<XmlElementSyntax> exceptionElements = TestingHelper.GetMethodExceptionXmlElements(methodUnderTestDeclaration, methodUnderTest);
 
                 // Find all tests for the method under test
                 List<MethodDeclarationSyntax> methodUnderTestTestMethods = testMethodDeclarations.
@@ -142,12 +119,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 for (int i = numExceptionElements - 1; i > -1; i--)
                 {
                     XmlElementSyntax exceptionElement = exceptionElements[i];
-                    XmlCrefAttributeSyntax xmlCrefAttribute = exceptionElement.
-                        StartTag.
-                        Attributes.
-                        Where(a => a is XmlCrefAttributeSyntax).
-                        Cast<XmlCrefAttributeSyntax>().
-                        FirstOrDefault();
+                    XmlCrefAttributeSyntax xmlCrefAttribute = TestingHelper.GetXmlElementCrefAttribute(exceptionElement);
                     if (xmlCrefAttribute == null)
                     {
                         exceptionElements.RemoveAt(i);
