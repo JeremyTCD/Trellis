@@ -146,7 +146,7 @@ namespace JeremyTCD.DotNet.Analyzers
             SemanticModel semanticModel)
         {
             List<SyntaxNode> classMembers = new List<SyntaxNode>();
-            HashSet<INamespaceSymbol> namespacesToImport = new HashSet<INamespaceSymbol>();
+            HashSet<INamespaceSymbol> namespaceSymbols = new HashSet<INamespaceSymbol>();
 
             classMembers.Add(TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator));
 
@@ -188,29 +188,42 @@ namespace JeremyTCD.DotNet.Analyzers
                     ITypeSymbol exceptionType = SymbolHelper.GetTypeSymbols(exceptionName, semanticModel.Compilation.GlobalNamespace).FirstOrDefault();
                     if (exceptionType != null)
                     {
-                        namespacesToImport.Add(exceptionType.ContainingNamespace);
+                        namespaceSymbols.Add(exceptionType.ContainingNamespace);
                     }
                 }
             }
 
-            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, false));
-            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, true));
+            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = classUnderTest.
+                Constructors.
+                OrderByDescending(c => c.Parameters.Count()).
+                First().
+                Parameters;
 
-            SyntaxNode classDeclaration = syntaxGenerator.ClassDeclaration(
+            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, false, classUnderTestConstructorParameters));
+            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, true, classUnderTestConstructorParameters));
+
+            foreach (ITypeSymbol type in classUnderTestConstructorParameters.Select(p => p.Type))
+            {
+                namespaceSymbols.Add(type.ContainingNamespace);
+            }
+
+            ClassDeclarationSyntax classDeclaration = syntaxGenerator.ClassDeclaration(
                 testClassName,
                 accessibility: Accessibility.Public,
-                members: classMembers);
+                members: classMembers) as ClassDeclarationSyntax;
 
             SyntaxNode namespaceDeclaration = syntaxGenerator.NamespaceDeclaration(namespaceName, classDeclaration);
 
             List<SyntaxNode> nodes = new List<SyntaxNode>();
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Moq")));
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Xunit")));
-            foreach(INamespaceSymbol namespaceSymbol in namespacesToImport)
+            nodes.AddRange(TestingHelper.CreateMissingUsingDirectives(namespaceSymbols, classDeclaration));
+
+            nodes = nodes.OrderBy(n =>
             {
-                nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(namespaceSymbol.ToDisplayString())));
-            }
-            nodes = nodes.OrderBy(n => (n as UsingDirectiveSyntax).Name.ToString()).ToList();
+                string name = (n as UsingDirectiveSyntax).Name.ToString();
+                return name.StartsWith("System") ? "_" : name; // System namespaces should come first
+            }).ToList();
             nodes.Add(namespaceDeclaration);
 
             return syntaxGenerator.CompilationUnit(nodes) as CompilationUnitSyntax;

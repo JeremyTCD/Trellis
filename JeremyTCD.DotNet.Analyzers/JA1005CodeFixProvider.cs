@@ -75,10 +75,16 @@ namespace JeremyTCD.DotNet.Analyzers
                     documentEditor.InsertMembers(classDeclaration, 0, new[] { TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator) });
                 }
 
+                // Add newly required usings
+                List<SyntaxNode> newUsingDirectives = TestingHelper.
+                    CreateMissingUsingDirectives(classUnderTestConstructorParameters.Select(p => p.Type.ContainingNamespace), classDeclaration);
+                documentEditor.InsertMembers(compilationUnit, 0, newUsingDirectives);
+
                 MethodDeclarationSyntax newCreateMethodDeclaration = TestingHelper.CreateCreateMethodDeclaration(
                     classUnderTest,
                     syntaxGenerator,
-                    createMockCreateMethod);
+                    createMockCreateMethod,
+                    classUnderTestConstructorParameters);
 
                 MethodDeclarationSyntax existingCreateMethodDeclaration = classDeclaration.
                     DescendantNodes().
@@ -118,7 +124,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
                 else
                 {
-                    documentEditor.AddMember(compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First(), newCreateMethodDeclaration);
+                    documentEditor.AddMember(classDeclaration, newCreateMethodDeclaration);
                 }
             }
 

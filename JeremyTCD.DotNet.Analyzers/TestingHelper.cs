@@ -239,13 +239,26 @@ namespace JeremyTCD.DotNet.Analyzers
 
         public static MethodDeclarationSyntax CreateCreateMethodDeclaration(INamedTypeSymbol classUnderTest,
             SyntaxGenerator syntaxGenerator,
-            bool createMockCreateMethod)
+            bool createMockCreateMethod,
+            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = null)
         {
-            IMethodSymbol classUnderTestConstructor = classUnderTest.Constructors.OrderByDescending(c => c.Parameters.Count()).First();
-            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = classUnderTestConstructor.Parameters;
+            if (classUnderTestConstructorParameters == null)
+            {
+                classUnderTestConstructorParameters = classUnderTest.
+                    Constructors.
+                    OrderByDescending(c => c.Parameters.Count()).
+                    First().
+                    Parameters;
+            }
 
             IEnumerable<SyntaxNode> parameterSyntaxes = classUnderTestConstructorParameters.
-                Select(p => syntaxGenerator.ParameterDeclaration(p, syntaxGenerator.DefaultExpression(p.Type)));
+                Select(p =>
+                {
+                    SyntaxNode defaultExpression = syntaxGenerator.DefaultExpression(p.Type);
+
+                    return (p.DeclaringSyntaxReferences.First().GetSyntax() as ParameterSyntax).
+                        WithDefault(SyntaxFactory.EqualsValueClause(defaultExpression as ExpressionSyntax));
+                });
 
             IEnumerable<SyntaxNode> resultExpressionArguments = parameterSyntaxes.
                 Select(p => syntaxGenerator.Argument(syntaxGenerator.IdentifierName((p as ParameterSyntax).Identifier.ValueText)));
@@ -407,6 +420,26 @@ namespace JeremyTCD.DotNet.Analyzers
                     statements: new[] { testSubjectLocalDeclaration, resultLocalDeclaration, verifyAllInvocation }) as MethodDeclarationSyntax;
 
             return methodDeclaration.AddAttributeLists(syntaxGenerator.Attribute("Fact") as AttributeListSyntax);
+        }
+
+        public static List<SyntaxNode> CreateMissingUsingDirectives(IEnumerable<INamespaceSymbol> namespaceSymbols, ClassDeclarationSyntax classDeclaration)
+        {
+            List<SyntaxNode> result = new List<SyntaxNode>();
+
+            IEnumerable<string> existingImportedNamespaces = classDeclaration.
+                DescendantNodes().
+                OfType<UsingDirectiveSyntax>().
+                Select(u => u.Name.ToString());
+
+            foreach(INamespaceSymbol namespaceSymbol in namespaceSymbols)
+            {
+                if (!existingImportedNamespaces.Contains(namespaceSymbol.ToDisplayString()))
+                {
+                    result.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(namespaceSymbol.ToDisplayString())));
+                }
+            }
+
+            return result;
         }
 
         public static ExpressionStatementSyntax CreateMockRepositoryVerifyAllExpression(SyntaxGenerator syntaxGenerator)
