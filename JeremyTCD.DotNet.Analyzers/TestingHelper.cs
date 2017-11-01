@@ -118,8 +118,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 return null;
             }
 
-            List<ITypeSymbol> types = new List<ITypeSymbol>();
-            SymbolHelper.TryGetTypeSymbol(classUnderTestName, globalNamespace, types);
+            IEnumerable<ITypeSymbol> types = SymbolHelper.GetTypeSymbols(classUnderTestName, globalNamespace);
 
             // More than one types with the same name (from different namespaces)
             if (types.Count() > 1)
@@ -416,6 +415,43 @@ namespace JeremyTCD.DotNet.Analyzers
             SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(syntaxGenerator.IdentifierName("_mockRepository"), "VerifyAll");
             SyntaxNode invocationExpression = syntaxGenerator.InvocationExpression(memberAccessExpression);
             return syntaxGenerator.ExpressionStatement(invocationExpression) as ExpressionStatementSyntax;
+        }
+
+        public static List<XmlElementSyntax> GetMethodExceptionXmlElements(MethodDeclarationSyntax methodDeclaration,
+            IMethodSymbol method)
+        {
+            // Get documentation trivia
+            DocumentationCommentTriviaSyntax documentationCommentTrivia = DocumentationHelper.GetDocumentCommentTrivia(methodDeclaration);
+            if (documentationCommentTrivia == null)
+            {
+                return new List<XmlElementSyntax>();
+            }
+            XmlNodeSyntax inheritdocNode = DocumentationHelper.GetXmlNodeSyntaxes(documentationCommentTrivia, "inheritdoc").FirstOrDefault();
+            if (inheritdocNode != null)
+            {
+                documentationCommentTrivia = DocumentationHelper.GetInheritedDocumentCommentTrivia(method);
+                if (documentationCommentTrivia == null)
+                {
+                    return new List<XmlElementSyntax>();
+                }
+            }
+
+            // Return exception elements that are not empty
+            return DocumentationHelper.
+                GetXmlNodeSyntaxes(documentationCommentTrivia, "exception").
+                Where(x => x is XmlElementSyntax).
+                Cast<XmlElementSyntax>().
+                ToList();
+        }
+
+        public static XmlCrefAttributeSyntax GetXmlElementCrefAttribute(XmlElementSyntax xmlElement)
+        {
+            return xmlElement.
+                        StartTag.
+                        Attributes.
+                        Where(a => a is XmlCrefAttributeSyntax).
+                        Cast<XmlCrefAttributeSyntax>().
+                        FirstOrDefault();
         }
     }
 }

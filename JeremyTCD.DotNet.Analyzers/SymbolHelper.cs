@@ -5,7 +5,15 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class SymbolHelper
     {
-        public static void TryGetTypeSymbol(string className, INamespaceOrTypeSymbol namespaceSymbol, List<ITypeSymbol> result)
+        public static IEnumerable<ITypeSymbol> GetTypeSymbols(string className, INamespaceOrTypeSymbol namespaceSymbol)
+        {
+            List<ITypeSymbol> result = new List<ITypeSymbol>();
+            TryGetTypeSymbols(className, namespaceSymbol, result);
+
+            return result;
+        }
+
+        private static void TryGetTypeSymbols(string className, INamespaceOrTypeSymbol namespaceSymbol, List<ITypeSymbol> result)
         {
             if (namespaceSymbol is ITypeSymbol)
             {
@@ -21,7 +29,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             foreach (INamespaceOrTypeSymbol child in symbols)
             {
-                TryGetTypeSymbol(className, child, result);
+                TryGetTypeSymbols(className, child, result);
             }
 
             return;
