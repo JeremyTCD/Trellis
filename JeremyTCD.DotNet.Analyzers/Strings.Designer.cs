@@ -371,6 +371,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create end to end test class....
+        /// </summary>
+        public static string JA1011_CodeFix_Title_CreateEndToEndTestClass {
+            get {
+                return ResourceManager.GetString("JA1011_CodeFix_Title_CreateEndToEndTestClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create integration test class....
+        /// </summary>
+        public static string JA1011_CodeFix_Title_CreateIntegrationTestClass {
+            get {
+                return ResourceManager.GetString("JA1011_CodeFix_Title_CreateIntegrationTestClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create unit test class....
+        /// </summary>
+        public static string JA1011_CodeFix_Title_CreateUnitTestClass {
+            get {
+                return ResourceManager.GetString("JA1011_CodeFix_Title_CreateUnitTestClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A public property or method is not virtual..
         /// </summary>
         public static string JA1100_Description {
