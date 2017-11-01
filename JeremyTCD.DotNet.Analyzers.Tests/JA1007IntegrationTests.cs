@@ -28,7 +28,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreNotTested.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreNotTested.ClassUnderTest"}
                 }
             };
 
@@ -51,7 +53,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreTestedByIncorrectlyNamedMethods.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreTestedByIncorrectlyNamedMethods.ClassUnderTest"}
                 }
             };
 
@@ -74,7 +78,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromImplementationsAreNotTested.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromImplementationsAreNotTested.ClassUnderTest"}
                 }
             };
 
@@ -97,7 +103,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromAbstractClassesAreNotTested.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromAbstractClassesAreNotTested.ClassUnderTest"}
                 }
             };
 
@@ -120,7 +128,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromBaseClassesAreNotTested.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromBaseClassesAreNotTested.ClassUnderTest"}
                 }
             };
 
@@ -143,7 +153,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
                         "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.NormalizesExceptionDescriptions.Tests.ClassUnderTestUnitTests" },
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"}
+                        "ClassUnderTest"},
+                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
+                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.NormalizesExceptionDescriptions.ClassUnderTest"}
                 }
             };
 

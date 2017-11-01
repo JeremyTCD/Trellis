@@ -49,19 +49,26 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Solution> GetTransformedSolutionAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            SemanticModel unitTestClassSemanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            CompilationUnitSyntax unitTestClassCompilationUnit = await document.GetSyntaxRootAsync().ConfigureAwait(false) as CompilationUnitSyntax;
 
             // Get unit test class
-            ITypeSymbol unitTestClass = semanticModel.
+            ITypeSymbol unitTestClass = unitTestClassSemanticModel.
                 Compilation.
                 GetTypeByMetadataName(diagnostic.Properties[JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty]);
 
-            // Get class under test name
-            string classUnderTestName = diagnostic.Properties[JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty];
-
-            // Get unit test class syntax root
+            // Get unit test class declaration
             ClassDeclarationSyntax unitTestClassDeclaration = unitTestClass.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
             SyntaxTree unitTestClassSyntaxTree = unitTestClassDeclaration.SyntaxTree;
+
+            // Get class under test
+            string classUnderTestName = diagnostic.Properties[JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty];
+            ITypeSymbol classUnderTest = unitTestClassSemanticModel.
+                Compilation.
+                GetTypeByMetadataName(diagnostic.Properties[JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty]);
+
+            // Get class under test declaration
+            ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
 
             // Get unit test class document
             Document unitTestClassDocument = document.Project.GetDocument(unitTestClassSyntaxTree);
@@ -95,66 +102,36 @@ namespace JeremyTCD.DotNet.Analyzers
                 else
                 {
                     // Otherwise, create a new test method
-                    MethodDeclarationSyntax newTestMethodDeclaration = CreateExceptionOutcomeTestMethod(
+                    MethodDeclarationSyntax newTestMethodDeclaration = TestingHelper.CreateExceptionTestMethod(
                         data[1],
                         classUnderTestName,
                         data[0],
-                        data[2],
+                        classUnderTest.GetMembers().OfType<IMethodSymbol>().First(m => m.Name == data[2]), // TODO does not handle overloaded methods
                         unitTestClassSyntaxGenerator);
 
-                    unitTestClassDocumentEditor.InsertMembers(unitTestClassDeclaration, 0, new[] { newTestMethodDeclaration });
+                    unitTestClassDocumentEditor.AddMember(unitTestClassDeclaration, newTestMethodDeclaration);
                 }
             }
 
-            // Replace document that contains test class
-            unitTestClassDocument = unitTestClassDocumentEditor.GetChangedDocument();
-            CompilationUnitSyntax unitTestClassCompilationUnit = await unitTestClassDocument.
-                GetSyntaxRootAsync()
-                .ConfigureAwait(false) as CompilationUnitSyntax;
+            Document newUnitTestDocument = unitTestClassDocumentEditor.GetChangedDocument();
+            SemanticModel newUnitTestClassSemanticModel = await newUnitTestDocument.GetSemanticModelAsync().ConfigureAwait(false);
+            CompilationUnitSyntax newUnitTestClassCompilationUnit = await newUnitTestDocument.GetSyntaxRootAsync().ConfigureAwait(false) as CompilationUnitSyntax;
+            ClassDeclarationSyntax newUnitTestClassDeclaration = newUnitTestClassCompilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
-            return document.Project.Solution.WithDocumentSyntaxRoot(unitTestClassDocument.Id, unitTestClassCompilationUnit);
-        }
+            // Get correct order
+            MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
+                OrderTestClassMembers(newUnitTestClassDeclaration, classUnderTestDeclaration, newUnitTestClassSemanticModel).
+                Cast<MemberDeclarationSyntax>().
+                ToArray();
 
-        private static MethodDeclarationSyntax CreateExceptionOutcomeTestMethod(string exceptionName,
-            string mainClassName,
-            string testMethodName,
-            string methodUnderTestName,
-            SyntaxGenerator syntaxGenerator)
-        {
-            // TODO assumes create method exists
-            SyntaxNode testSubjectLocalDeclaration = syntaxGenerator.
-                LocalDeclarationStatement(
-                    SyntaxFactory.IdentifierName(mainClassName),
-                    "testSubject",
-                    syntaxGenerator.InvocationExpression(SyntaxFactory.IdentifierName($"Create{mainClassName}")));
+            // Fix trivia
+            SyntaxHelper.FixMemberTrivia(orderedTestClassMembers);
 
-            SyntaxNode throwsMemberAccessExpression = syntaxGenerator.
-                MemberAccessExpression(
-                    SyntaxFactory.IdentifierName("Assert"),
-                    syntaxGenerator.GenericName("Throws", SyntaxFactory.IdentifierName(exceptionName)));
+            // Create new syntax root
+            newUnitTestClassCompilationUnit = newUnitTestClassCompilationUnit.
+                ReplaceNode(newUnitTestClassDeclaration, newUnitTestClassDeclaration.WithMembers(SyntaxFactory.List(orderedTestClassMembers)));
 
-            // TODO does not provide default arguments
-            SyntaxNode lambdaExpression = syntaxGenerator.
-                VoidReturningLambdaExpression(
-                    syntaxGenerator.InvocationExpression(
-                        syntaxGenerator.MemberAccessExpression(
-                            SyntaxFactory.IdentifierName("testSubject"), methodUnderTestName)));
-
-            SyntaxNode throwsInvocation = syntaxGenerator.
-                InvocationExpression(throwsMemberAccessExpression, lambdaExpression);
-
-            SyntaxNode resultLocalDeclaration = syntaxGenerator.
-                LocalDeclarationStatement(
-                    SyntaxFactory.IdentifierName(exceptionName),
-                    "result",
-                    throwsInvocation);
-
-            MethodDeclarationSyntax methodDeclaration = syntaxGenerator.
-                MethodDeclaration(testMethodName,
-                    accessibility: Accessibility.Public,
-                    statements: new[] { testSubjectLocalDeclaration, resultLocalDeclaration }) as MethodDeclarationSyntax;
-
-            return methodDeclaration.AddAttributeLists(syntaxGenerator.Attribute("Fact") as AttributeListSyntax);
+            return document.Project.Solution.WithDocumentSyntaxRoot(unitTestClassDocument.Id, newUnitTestClassCompilationUnit);
         }
     }
 }

@@ -21,6 +21,7 @@ namespace JeremyTCD.DotNet.Analyzers
         public const string FixDataProperty = "FixDataProperty";
         public const string TestClassFullyQualifiedNameProperty = "TestClassFullyQualifiedNameProperty";
         public const string ClassUnderTestNameProperty = "ClassUnderTestNameProperty";
+        public const string ClassUnderTestFullyQualifiedNameProperty = "ClassUnderTestFullyQualifiedNameProperty";
 
         private static readonly DiagnosticDescriptor Descriptor =
             new DiagnosticDescriptor(DiagnosticId,
@@ -208,6 +209,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 builder.Add(FixDataProperty, fixData);
                 builder.Add(TestClassFullyQualifiedNameProperty, unitTestClass.ToDisplayString());
                 builder.Add(ClassUnderTestNameProperty, classUnderTest.Name.ToString());
+                builder.Add(ClassUnderTestFullyQualifiedNameProperty, classUnderTest.ToDisplayString());
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassDeclaration.Identifier.GetLocation(), builder.ToImmutable()));
             }
         }
