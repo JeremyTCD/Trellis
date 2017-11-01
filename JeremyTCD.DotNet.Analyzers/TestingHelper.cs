@@ -172,9 +172,14 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static List<SyntaxNode> OrderTestClassMembers(ClassDeclarationSyntax testClassDeclaration, ClassDeclarationSyntax classUnderTestDeclaration,
-            SemanticModel semanticModel)
+            SemanticModel testClassSemanticModel)
         {
-            IEnumerable<SyntaxNode> testClassMembers = testClassDeclaration.ChildNodes();
+            return OrderTestClassMembers(testClassDeclaration.ChildNodes(), classUnderTestDeclaration, testClassSemanticModel);
+        }
+
+        public static List<SyntaxNode> OrderTestClassMembers(IEnumerable<SyntaxNode> testClassMembers, ClassDeclarationSyntax classUnderTestDeclaration,
+            SemanticModel testClassSemanticModel)
+        {
             IEnumerable<MethodDeclarationSyntax> testClassMethodDeclarations = testClassMembers.OfType<MethodDeclarationSyntax>();
 
             // TODO property, indexer tests
@@ -186,7 +191,7 @@ namespace JeremyTCD.DotNet.Analyzers
             result.AddRange(testClassMembers.OfType<ConstructorDeclarationSyntax>());
 
             IEnumerable<MethodDeclarationSyntax> testAndDataMethodDeclarations = testClassMethodDeclarations.
-                Where(m => IsTestMethod(m, semanticModel) || IsTestDataMethod(m));
+                Where(m => IsTestMethod(m, testClassSemanticModel) || IsTestDataMethod(m));
             if (testAndDataMethodDeclarations.Count() > 0)
             {
                 if (classUnderTestMethodDeclarations.Count() == 0)
