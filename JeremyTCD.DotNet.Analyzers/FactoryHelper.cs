@@ -11,10 +11,9 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class FactoryHelper
     {
-        public static bool IsFactoryClass(ClassDeclarationSyntax classDeclaration)
+        public static bool IsFactoryType(TypeDeclarationSyntax typeDeclaration)
         {
-            // Unfortunately, no better way to identify factories
-            return classDeclaration.Identifier.ValueText.EndsWith("Factory");
+            return typeDeclaration.Identifier.ValueText.EndsWith("Factory");
         }
 
         public static IEnumerable<MethodDeclarationSyntax> GetCreateMethods(ClassDeclarationSyntax classDeclaration)
@@ -25,9 +24,9 @@ namespace JeremyTCD.DotNet.Analyzers
                 Where(m => m.Identifier.ValueText == "Create");
         }
 
-        public static ITypeSymbol GetProducedType(ClassDeclarationSyntax classDeclaration, INamespaceSymbol globalNamespace)
+        public static ITypeSymbol GetProducedType(TypeDeclarationSyntax typeDeclaration, INamespaceSymbol globalNamespace)
         {
-            string factoryName = classDeclaration.Identifier.ValueText;
+            string factoryName = typeDeclaration.Identifier.ValueText;
             int lastIndexOfFactory = factoryName.LastIndexOf("Factory");
             string producedTypeName = factoryName.Substring(0, lastIndexOfFactory == -1 ? factoryName.Length : lastIndexOfFactory);
 
@@ -36,7 +35,7 @@ namespace JeremyTCD.DotNet.Analyzers
             // More than one types with the same name (from different namespaces)
             if (types.Count() > 1)
             {
-                string classNamespaceName = classDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
+                string classNamespaceName = typeDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
 
                 foreach (ITypeSymbol type in types)
                 {

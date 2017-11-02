@@ -49,7 +49,7 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Return if not a factory class
-            if (!FactoryHelper.IsFactoryClass(classDeclaration))
+            if (!FactoryHelper.IsFactoryType(classDeclaration))
             {
                 return;
             }
