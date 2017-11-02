@@ -450,5 +450,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1200_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory interface names must be correctly formatted..
+        /// </summary>
+        public static string JA1201_Description {
+            get {
+                return ResourceManager.GetString("JA1201_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory interface name is not in format &quot;&lt;ProducedInterface&gt;Factory&quot;..
+        /// </summary>
+        public static string JA1201_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1201_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory interface names must be correctly formatted..
+        /// </summary>
+        public static string JA1201_Title {
+            get {
+                return ResourceManager.GetString("JA1201_Title", resourceCulture);
+            }
+        }
     }
 }
