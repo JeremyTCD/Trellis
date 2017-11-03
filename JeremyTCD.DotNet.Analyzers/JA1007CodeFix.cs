@@ -47,10 +47,10 @@ namespace JeremyTCD.DotNet.Analyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetTransformedSolutionAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Solution> GetTransformedSolutionAsync(Document unitTestClassDocument, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            SemanticModel unitTestClassSemanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
-            CompilationUnitSyntax unitTestClassCompilationUnit = await document.GetSyntaxRootAsync().ConfigureAwait(false) as CompilationUnitSyntax;
+            SemanticModel unitTestClassSemanticModel = await unitTestClassDocument.GetSemanticModelAsync().ConfigureAwait(false);
+            CompilationUnitSyntax unitTestClassCompilationUnit = await unitTestClassDocument.GetSyntaxRootAsync().ConfigureAwait(false) as CompilationUnitSyntax;
 
             // Get unit test class
             ITypeSymbol unitTestClass = unitTestClassSemanticModel.
@@ -71,7 +71,6 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
 
             // Get unit test class document
-            Document unitTestClassDocument = document.Project.GetDocument(unitTestClassSyntaxTree);
             DocumentEditor unitTestClassDocumentEditor = await DocumentEditor.CreateAsync(unitTestClassDocument).ConfigureAwait(false);
             SyntaxGenerator unitTestClassSyntaxGenerator = SyntaxGenerator.GetGenerator(unitTestClassDocument);
 
@@ -120,7 +119,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             // Get correct order
             MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
-                OrderTestClassMembers(newUnitTestClassDeclaration, classUnderTestDeclaration, newUnitTestClassSemanticModel).
+                OrderTestClassMembers(newUnitTestClassDeclaration, classUnderTestDeclaration, newUnitTestClassSemanticModel, classUnderTest).
                 Cast<MemberDeclarationSyntax>().
                 ToArray();
 
@@ -131,7 +130,7 @@ namespace JeremyTCD.DotNet.Analyzers
             newUnitTestClassCompilationUnit = newUnitTestClassCompilationUnit.
                 ReplaceNode(newUnitTestClassDeclaration, newUnitTestClassDeclaration.WithMembers(SyntaxFactory.List(orderedTestClassMembers)));
 
-            return document.Project.Solution.WithDocumentSyntaxRoot(unitTestClassDocument.Id, newUnitTestClassCompilationUnit);
+            return unitTestClassDocument.Project.Solution.WithDocumentSyntaxRoot(unitTestClassDocument.Id, newUnitTestClassCompilationUnit);
         }
     }
 }

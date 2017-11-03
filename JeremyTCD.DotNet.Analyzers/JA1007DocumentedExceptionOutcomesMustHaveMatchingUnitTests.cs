@@ -94,6 +94,13 @@ namespace JeremyTCD.DotNet.Analyzers
                 Select(m => m.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax).
                 Where(m => m != null);
 
+            // Create map of methods that test methods test
+            Dictionary<MethodDeclarationSyntax, IMethodSymbol> methodsThatTestMethodsTest = new Dictionary<MethodDeclarationSyntax, IMethodSymbol>();
+            foreach(MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
+            {
+                methodsThatTestMethodsTest.Add(testMethodDeclaration, TestingHelper.GetMethodUnderTest(testMethodDeclaration, classUnderTest, semanticModel));
+            }
+
             // Create dictionary for speeding up second pass
             Dictionary<XmlElementSyntax, Tuple<string, string>> exceptionElementValues = new Dictionary<XmlElementSyntax, Tuple<string, string>>();
 
@@ -112,7 +119,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
                 // Find all tests for the method under test
                 List<MethodDeclarationSyntax> methodUnderTestTestMethods = testMethodDeclarations.
-                    Where(m => m.Identifier.ValueText.StartsWith($"{methodUnderTest.Name}_")).ToList();
+                    Where(m => methodsThatTestMethodsTest[m] == methodUnderTest).ToList();
 
                 // Filter out exception elements that do not have cref attributes or that have valid test methods
                 int numExceptionElements = exceptionElements.Count();
