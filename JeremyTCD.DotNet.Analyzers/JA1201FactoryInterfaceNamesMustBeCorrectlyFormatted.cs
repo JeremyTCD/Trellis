@@ -48,7 +48,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            // Return if not a factory class
+            // Return if not a factory interface
             if (!FactoryHelper.IsFactoryType(interfaceDeclaration))
             {
                 return;
