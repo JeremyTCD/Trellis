@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -33,20 +35,23 @@ namespace JeremyTCD.DotNet.Analyzers
             IEnumerable<ITypeSymbol> types = SymbolHelper.GetTypeSymbols(producedTypeName, globalNamespace);
 
             // More than one types with the same name (from different namespaces)
-            if (types.Count() > 1)
-            {
-                string classNamespaceName = typeDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
+            string producedTypeNamespaceName = typeDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
 
-                foreach (ITypeSymbol type in types)
+            foreach (ITypeSymbol type in types)
+            {
+                if (producedTypeNamespaceName.Equals(type.ContainingNamespace.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    if (classNamespaceName.Equals(type.ContainingNamespace.ToString(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        return type;
-                    }
+                    return type;
                 }
             }
 
-            return types.FirstOrDefault();
+            return null;
+        }
+
+        public static MethodDeclarationSyntax CreateCreateMethodDeclaration(InterfaceDeclarationSyntax producedInterfaceDeclaration, SyntaxGenerator syntaxGenerator)
+        {
+            return syntaxGenerator.
+                MethodDeclaration("Create", returnType: SyntaxFactory.IdentifierName(producedInterfaceDeclaration.Identifier)) as MethodDeclarationSyntax;
         }
     }
 }
