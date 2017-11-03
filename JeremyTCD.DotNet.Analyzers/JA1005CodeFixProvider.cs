@@ -77,7 +77,10 @@ namespace JeremyTCD.DotNet.Analyzers
 
                 // Add newly required usings
                 List<SyntaxNode> newUsingDirectives = TestingHelper.
-                    CreateMissingUsingDirectives(classUnderTestConstructorParameters.Select(p => p.Type.ContainingNamespace), classDeclaration);
+                    CreateMissingUsingDirectives(
+                        classUnderTestConstructorParameters.Select(p => p.Type.ContainingNamespace), 
+                        classDeclaration,
+                        compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().FirstOrDefault());
                 documentEditor.InsertMembers(compilationUnit, 0, newUsingDirectives);
 
                 MethodDeclarationSyntax newCreateMethodDeclaration = TestingHelper.CreateCreateMethodDeclaration(
