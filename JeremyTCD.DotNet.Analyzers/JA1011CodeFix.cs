@@ -54,7 +54,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 context.RegisterCodeFix(
                     CodeAction.Create(
                     Strings.JA1011_CodeFix_Title_CreateUnitTestClass,
-                    cancellationToken => CreateUnitTestClass(solution,
+                    cancellationToken => CreateTestClass(solution,
                         testProject,
                         mainDocument,
                         testProjectName,
@@ -66,13 +66,13 @@ namespace JeremyTCD.DotNet.Analyzers
                     diagnostic);
             }
 
-            string integrationTestClassName = $"{mainClassName}IntegrationTests.cs";
+            string integrationTestClassName = $"{mainClassName}IntegrationTests";
             if (!testProject.Documents.Any(d => d.Name == integrationTestClassName))
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
                     Strings.JA1011_CodeFix_Title_CreateIntegrationTestClass,
-                    cancellationToken => CreateUnitTestClass(solution,
+                    cancellationToken => CreateTestClass(solution,
                         testProject,
                         mainDocument,
                         testProjectName,
@@ -84,13 +84,13 @@ namespace JeremyTCD.DotNet.Analyzers
                     diagnostic);
             }
 
-            string endToEndTestClassName = $"{mainClassName}EndToEndTests.cs";
+            string endToEndTestClassName = $"{mainClassName}EndToEndTests";
             if (!testProject.Documents.Any(d => d.Name == endToEndTestClassName))
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
                     Strings.JA1011_CodeFix_Title_CreateEndToEndTestClass,
-                    cancellationToken => CreateUnitTestClass(solution,
+                    cancellationToken => CreateTestClass(solution,
                         testProject,
                         mainDocument,
                         testProjectName,
@@ -105,7 +105,7 @@ namespace JeremyTCD.DotNet.Analyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> CreateUnitTestClass(Solution solution,
+        private static async Task<Solution> CreateTestClass(Solution solution,
             Project testProject,
             Document mainDocument,
             string namespaceName,
@@ -199,8 +199,8 @@ namespace JeremyTCD.DotNet.Analyzers
                 First().
                 Parameters;
 
-            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, false, classUnderTestConstructorParameters));
             classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, true, classUnderTestConstructorParameters));
+            classMembers.Add(TestingHelper.CreateCreateMethodDeclaration(classUnderTest, syntaxGenerator, false, classUnderTestConstructorParameters));
 
             foreach (ITypeSymbol type in classUnderTestConstructorParameters.Select(p => p.Type))
             {
@@ -212,12 +212,13 @@ namespace JeremyTCD.DotNet.Analyzers
                 accessibility: Accessibility.Public,
                 members: classMembers) as ClassDeclarationSyntax;
 
-            SyntaxNode namespaceDeclaration = syntaxGenerator.NamespaceDeclaration(namespaceName, classDeclaration);
+            NamespaceDeclarationSyntax namespaceDeclaration = syntaxGenerator.
+                NamespaceDeclaration(namespaceName, classDeclaration) as NamespaceDeclarationSyntax;
 
             List<SyntaxNode> nodes = new List<SyntaxNode>();
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Moq")));
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Xunit")));
-            nodes.AddRange(TestingHelper.CreateMissingUsingDirectives(namespaceSymbols, classDeclaration));
+            nodes.AddRange(TestingHelper.CreateMissingUsingDirectives(namespaceSymbols, classDeclaration, namespaceDeclaration));
 
             nodes = nodes.OrderBy(n =>
             {
