@@ -59,7 +59,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             // Get correct order
             MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
-                OrderTestClassMembers(oldTestClassDeclaration, classUnderTestDeclaration, semanticModel).
+                OrderTestClassMembers(oldTestClassDeclaration, classUnderTestDeclaration, semanticModel, classUnderTest).
                 Cast<MemberDeclarationSyntax>().ToArray(); ;
 
             // Fix trivia

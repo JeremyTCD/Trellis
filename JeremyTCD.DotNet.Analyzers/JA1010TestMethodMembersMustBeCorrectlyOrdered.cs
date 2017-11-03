@@ -67,7 +67,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             // Get correct order
             IEnumerable<SyntaxNode> orderedTestClassMembers = TestingHelper.OrderTestClassMembers(testClassDeclaration, classUnderTestDeclaration,
-                semanticModel);
+                semanticModel, classUnderTest);
 
             // Create diagnostic
             if (!orderedTestClassMembers.SequenceEqual(testClassDeclaration.ChildNodes()))
