@@ -425,7 +425,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Factory class names must be correctly formatted..
+        ///   Looks up a localized string similar to A factory class&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1200_Description {
             get {
@@ -452,7 +452,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Factory interface names must be correctly formatted..
+        ///   Looks up a localized string similar to A factory interface&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1201_Description {
             get {
@@ -475,6 +475,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1201_Title {
             get {
                 return ResourceManager.GetString("JA1201_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A factory interface does not have any valid create methods..
+        /// </summary>
+        public static string JA1202_Description {
+            get {
+                return ResourceManager.GetString("JA1202_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory interface does not have a method named &quot;Create&quot; that returns the produced interface..
+        /// </summary>
+        public static string JA1202_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1202_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory interface must have at least one valid create method..
+        /// </summary>
+        public static string JA1202_Title {
+            get {
+                return ResourceManager.GetString("JA1202_Title", resourceCulture);
             }
         }
     }

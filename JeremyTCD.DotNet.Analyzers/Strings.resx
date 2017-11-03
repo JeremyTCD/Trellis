@@ -241,7 +241,7 @@
     <value>Public properties and methods must be virtual.</value>
   </data>
   <data name="JA1200_Description" xml:space="preserve">
-    <value>Factory class names must be correctly formatted.</value>
+    <value>A factory class's name is incorrectly formatted.</value>
   </data>
   <data name="JA1200_MessageFormat" xml:space="preserve">
     <value>Factory class name is not in format "&lt;ProducedType&gt;Factory".</value>
@@ -250,12 +250,21 @@
     <value>Factory class names must be correctly formatted.</value>
   </data>
   <data name="JA1201_Description" xml:space="preserve">
-    <value>Factory interface names must be correctly formatted.</value>
+    <value>A factory interface's name is incorrectly formatted.</value>
   </data>
   <data name="JA1201_MessageFormat" xml:space="preserve">
     <value>Factory interface name is not in format "&lt;ProducedInterface&gt;Factory".</value>
   </data>
   <data name="JA1201_Title" xml:space="preserve">
     <value>Factory interface names must be correctly formatted.</value>
+  </data>
+  <data name="JA1202_Description" xml:space="preserve">
+    <value>A factory interface does not have any valid create methods.</value>
+  </data>
+  <data name="JA1202_MessageFormat" xml:space="preserve">
+    <value>Factory interface does not have a method named "Create" that returns the produced interface.</value>
+  </data>
+  <data name="JA1202_Title" xml:space="preserve">
+    <value>Factory interface must have at least one valid create method.</value>
   </data>
 </root>
