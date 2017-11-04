@@ -64,14 +64,22 @@ namespace JeremyTCD.DotNet.Analyzers
             {
                 return;
             }
-            SemanticModel classUnderTestSemanticModel = context.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
+
+            // Get class under test semantic model
+            Compilation compilation = testClassSemanticModel.Compilation;
+            if (!compilation.ContainsSyntaxTree(classUnderTestDeclaration.SyntaxTree))
+            {
+                compilation = compilation.AddSyntaxTrees(classUnderTestDeclaration.SyntaxTree);
+            }
+            SemanticModel classUnderTestSemanticModel = compilation.
+                GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
 
             // Get correct order
             IEnumerable<SyntaxNode> orderedTestClassMembers = TestingHelper.OrderTestClassMembers(
-                testClassDeclaration, 
+                testClassDeclaration,
                 classUnderTestDeclaration,
-                testClassSemanticModel, 
-                classUnderTest, 
+                testClassSemanticModel,
+                classUnderTest,
                 classUnderTestSemanticModel);
 
             // Create diagnostic

@@ -56,6 +56,7 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax oldTestClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
             ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(oldTestClassDeclaration, semanticModel.Compilation.GlobalNamespace);
             ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
+            Document classUnderTestDocument = document.Project.Solution.GetDocument(classUnderTestDeclaration.SyntaxTree);
             SemanticModel classUnderTestSemanticModel = semanticModel.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
 
             // Get correct order
