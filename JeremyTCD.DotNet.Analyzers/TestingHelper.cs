@@ -137,7 +137,8 @@ namespace JeremyTCD.DotNet.Analyzers
             return types.FirstOrDefault();
         }
 
-        public static IMethodSymbol GetMethodUnderTest(MethodDeclarationSyntax testMethodDeclaration, ITypeSymbol classUnderTest, SemanticModel semanticModel)
+        public static IMethodSymbol GetMethodUnderTest(MethodDeclarationSyntax testMethodDeclaration, ITypeSymbol classUnderTest, 
+            SemanticModel testClassSemanticModel)
         {
             // Find all member access expressions that are children of invocation expressions
             IEnumerable<MemberAccessExpressionSyntax> memberAccessExpressions = testMethodDeclaration.
@@ -149,12 +150,12 @@ namespace JeremyTCD.DotNet.Analyzers
             IEnumerable<MemberAccessExpressionSyntax> classUnderTestMemberAccessExpressions = memberAccessExpressions.
                 Where(m =>
                 {
-                    ISymbol symbol = semanticModel.GetSymbolInfo(m.Expression).Symbol;
+                    ISymbol symbol = testClassSemanticModel.GetSymbolInfo(m.Expression).Symbol;
                     return (symbol as ILocalSymbol)?.Type == classUnderTest || (symbol as IPropertySymbol)?.Type == classUnderTest;
                 });
             if(classUnderTestMemberAccessExpressions.Count() == 1)
             {
-                return semanticModel.GetSymbolInfo(classUnderTestMemberAccessExpressions.Single().Name).Symbol as IMethodSymbol;
+                return testClassSemanticModel.GetSymbolInfo(classUnderTestMemberAccessExpressions.Single().Name).Symbol as IMethodSymbol;
             }
 
             // If there is more than one, filter out those that are within setup invocations
@@ -170,7 +171,7 @@ namespace JeremyTCD.DotNet.Analyzers
                         return childMemberAccessExpression != null && childMemberAccessExpression.Name.ToString() == "Setup";
                     }))
                 {
-                    return semanticModel.GetDeclaredSymbol(memberAccessExpression) as IMethodSymbol;
+                    return testClassSemanticModel.GetDeclaredSymbol(memberAccessExpression) as IMethodSymbol;
                 }
             }
 
@@ -214,20 +215,11 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax testClassDeclaration, 
             ClassDeclarationSyntax classUnderTestDeclaration,
             SemanticModel testClassSemanticModel,
-            ITypeSymbol classUnderTest)
+            ITypeSymbol classUnderTest,
+            SemanticModel classUnderTestSemanticModel)
         {
-            return OrderTestClassMembers(testClassDeclaration.ChildNodes(), 
-                classUnderTestDeclaration,
-                testClassSemanticModel,
-                classUnderTest);
-        }
+            IEnumerable<SyntaxNode> testClassMembers = testClassDeclaration.ChildNodes();
 
-        public static List<SyntaxNode> OrderTestClassMembers(
-            IEnumerable<SyntaxNode> testClassMembers,
-            ClassDeclarationSyntax classUnderTestDeclaration,
-            SemanticModel testClassSemanticModel,
-            ITypeSymbol classUnderTest)
-        {
             IEnumerable<MethodDeclarationSyntax> testClassMethodDeclarations = testClassMembers.OfType<MethodDeclarationSyntax>();
 
             // TODO property, indexer tests
@@ -251,13 +243,12 @@ namespace JeremyTCD.DotNet.Analyzers
                     Dictionary<MethodDeclarationSyntax, IMethodSymbol> methodsThatTestMethodsTest = new Dictionary<MethodDeclarationSyntax, IMethodSymbol>();
                     foreach (MethodDeclarationSyntax testMethodDeclaration in testAndDataMethodDeclarations.Where(m => IsTestMethod(m, testClassSemanticModel)))
                     {
-                        methodsThatTestMethodsTest.Add(testMethodDeclaration, TestingHelper.
-                            GetMethodUnderTest(testMethodDeclaration, classUnderTest, testClassSemanticModel));
+                        methodsThatTestMethodsTest.Add(testMethodDeclaration, GetMethodUnderTest(testMethodDeclaration, classUnderTest, testClassSemanticModel));
                     }
 
                     foreach (MethodDeclarationSyntax classUnderTestMethodDeclaration in classUnderTestMethodDeclarations)
                     {
-                        IMethodSymbol classUnderTestMethod = testClassSemanticModel.GetDeclaredSymbol(classUnderTestMethodDeclaration) as IMethodSymbol;
+                        IMethodSymbol classUnderTestMethod = classUnderTestSemanticModel.GetDeclaredSymbol(classUnderTestMethodDeclaration) as IMethodSymbol;
                         IEnumerable<MethodDeclarationSyntax> classUnderTestMethodTestMethodDeclarations = methodsThatTestMethodsTest.
                             Where(kvp => kvp.Value == classUnderTestMethod).
                             Select(kvp => kvp.Key);

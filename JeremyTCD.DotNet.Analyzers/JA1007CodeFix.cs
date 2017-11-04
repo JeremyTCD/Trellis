@@ -70,6 +70,9 @@ namespace JeremyTCD.DotNet.Analyzers
             // Get class under test declaration
             ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
 
+            // Get class under test semantic model
+            SemanticModel classUnderTestSemanticModel = unitTestClassSemanticModel.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
+
             // Get unit test class document
             DocumentEditor unitTestClassDocumentEditor = await DocumentEditor.CreateAsync(unitTestClassDocument).ConfigureAwait(false);
             SyntaxGenerator unitTestClassSyntaxGenerator = SyntaxGenerator.GetGenerator(unitTestClassDocument);
@@ -117,9 +120,20 @@ namespace JeremyTCD.DotNet.Analyzers
             CompilationUnitSyntax newUnitTestClassCompilationUnit = await newUnitTestDocument.GetSyntaxRootAsync().ConfigureAwait(false) as CompilationUnitSyntax;
             ClassDeclarationSyntax newUnitTestClassDeclaration = newUnitTestClassCompilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
+            ITypeSymbol newClassUnderTest = newUnitTestClassSemanticModel.
+                Compilation.
+                GetTypeByMetadataName(diagnostic.Properties[JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty]) as ITypeSymbol;
+            ClassDeclarationSyntax newClassUnderTestDeclaration = newClassUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
+            SemanticModel newClassUnderTestSemanticModel = newUnitTestClassSemanticModel.Compilation.GetSemanticModel(newClassUnderTestDeclaration.SyntaxTree);
+
             // Get correct order
             MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
-                OrderTestClassMembers(newUnitTestClassDeclaration, classUnderTestDeclaration, newUnitTestClassSemanticModel, classUnderTest).
+                OrderTestClassMembers(
+                    newUnitTestClassDeclaration, 
+                    newClassUnderTestDeclaration, 
+                    newUnitTestClassSemanticModel, 
+                    newClassUnderTest,
+                    newClassUnderTestSemanticModel).
                 Cast<MemberDeclarationSyntax>().
                 ToArray();
 

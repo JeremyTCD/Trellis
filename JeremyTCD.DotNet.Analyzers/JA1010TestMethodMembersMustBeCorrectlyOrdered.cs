@@ -38,7 +38,7 @@ namespace JeremyTCD.DotNet.Analyzers
         private void Handle(SyntaxNodeAnalysisContext context)
         {
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
+            SemanticModel testClassSemanticModel = context.SemanticModel;
 
             // Return if not in a test class
             if (!TestingHelper.ContainsTestClass(compilationUnit))
@@ -54,7 +54,7 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // Get class under test declaration
-            ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(testClassDeclaration, semanticModel.Compilation.GlobalNamespace);
+            ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(testClassDeclaration, testClassSemanticModel.Compilation.GlobalNamespace);
             if (classUnderTest == null)
             {
                 return;
@@ -64,10 +64,15 @@ namespace JeremyTCD.DotNet.Analyzers
             {
                 return;
             }
+            SemanticModel classUnderTestSemanticModel = context.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
 
             // Get correct order
-            IEnumerable<SyntaxNode> orderedTestClassMembers = TestingHelper.OrderTestClassMembers(testClassDeclaration, classUnderTestDeclaration,
-                semanticModel, classUnderTest);
+            IEnumerable<SyntaxNode> orderedTestClassMembers = TestingHelper.OrderTestClassMembers(
+                testClassDeclaration, 
+                classUnderTestDeclaration,
+                testClassSemanticModel, 
+                classUnderTest, 
+                classUnderTestSemanticModel);
 
             // Create diagnostic
             if (!orderedTestClassMembers.SequenceEqual(testClassDeclaration.ChildNodes()))

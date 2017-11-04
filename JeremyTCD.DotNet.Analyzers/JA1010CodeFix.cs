@@ -56,11 +56,17 @@ namespace JeremyTCD.DotNet.Analyzers
             ClassDeclarationSyntax oldTestClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
             ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(oldTestClassDeclaration, semanticModel.Compilation.GlobalNamespace);
             ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
+            SemanticModel classUnderTestSemanticModel = semanticModel.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
 
             // Get correct order
             MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
-                OrderTestClassMembers(oldTestClassDeclaration, classUnderTestDeclaration, semanticModel, classUnderTest).
-                Cast<MemberDeclarationSyntax>().ToArray(); ;
+                OrderTestClassMembers(
+                    oldTestClassDeclaration, 
+                    classUnderTestDeclaration, 
+                    semanticModel, 
+                    classUnderTest,
+                    classUnderTestSemanticModel).
+                Cast<MemberDeclarationSyntax>().ToArray();
 
             // Fix trivia
             SyntaxHelper.FixMemberTrivia(orderedTestClassMembers);
