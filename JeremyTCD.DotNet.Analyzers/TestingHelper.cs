@@ -137,7 +137,7 @@ namespace JeremyTCD.DotNet.Analyzers
             return types.FirstOrDefault();
         }
 
-        public static IMethodSymbol GetMethodUnderTest(MethodDeclarationSyntax testMethodDeclaration, ITypeSymbol classUnderTest, 
+        public static IMethodSymbol GetMethodUnderTest(MethodDeclarationSyntax testMethodDeclaration, ITypeSymbol classUnderTest,
             SemanticModel testClassSemanticModel)
         {
             // Find all member access expressions that are children of invocation expressions
@@ -153,13 +153,13 @@ namespace JeremyTCD.DotNet.Analyzers
                     ISymbol symbol = testClassSemanticModel.GetSymbolInfo(m.Expression).Symbol;
                     return (symbol as ILocalSymbol)?.Type == classUnderTest || (symbol as IPropertySymbol)?.Type == classUnderTest;
                 });
-            if(classUnderTestMemberAccessExpressions.Count() == 1)
+            if (classUnderTestMemberAccessExpressions.Count() == 1)
             {
                 return testClassSemanticModel.GetSymbolInfo(classUnderTestMemberAccessExpressions.Single().Name).Symbol as IMethodSymbol;
             }
 
             // If there is more than one, filter out those that are within setup invocations
-            foreach(MemberAccessExpressionSyntax memberAccessExpression in classUnderTestMemberAccessExpressions)
+            foreach (MemberAccessExpressionSyntax memberAccessExpression in classUnderTestMemberAccessExpressions)
             {
                 if (!memberAccessExpression.
                     Parent.
@@ -212,7 +212,7 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static List<SyntaxNode> OrderTestClassMembers(
-            ClassDeclarationSyntax testClassDeclaration, 
+            ClassDeclarationSyntax testClassDeclaration,
             ClassDeclarationSyntax classUnderTestDeclaration,
             SemanticModel testClassSemanticModel,
             ITypeSymbol classUnderTest,
@@ -250,7 +250,10 @@ namespace JeremyTCD.DotNet.Analyzers
                     {
                         IMethodSymbol classUnderTestMethod = classUnderTestSemanticModel.GetDeclaredSymbol(classUnderTestMethodDeclaration) as IMethodSymbol;
                         IEnumerable<MethodDeclarationSyntax> classUnderTestMethodTestMethodDeclarations = methodsThatTestMethodsTest.
-                            Where(kvp => kvp.Value == classUnderTestMethod).
+                            Where(kvp =>
+                            {
+                                return classUnderTestMethod.DeclaringSyntaxReferences.First().GetSyntax() == kvp.Value.DeclaringSyntaxReferences.First().GetSyntax();
+                            }).
                             Select(kvp => kvp.Key);
 
                         foreach (MethodDeclarationSyntax classUnderTestMethodTestMethodDeclaration in classUnderTestMethodTestMethodDeclarations)
@@ -280,7 +283,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             return result;
         }
-    
+
 
         public static MethodDeclarationSyntax CreateCreateMethodDeclaration(INamedTypeSymbol classUnderTest,
             SyntaxGenerator syntaxGenerator,
@@ -468,7 +471,7 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static List<SyntaxNode> CreateMissingUsingDirectives(
-            IEnumerable<INamespaceSymbol> namespaceSymbols, 
+            IEnumerable<INamespaceSymbol> namespaceSymbols,
             ClassDeclarationSyntax classDeclaration,
             NamespaceDeclarationSyntax namespaceDeclaration)
         {
@@ -481,7 +484,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
             string currentNamespace = namespaceDeclaration?.Name.ToString() ?? string.Empty;
 
-            foreach(INamespaceSymbol namespaceSymbol in namespaceSymbols)
+            foreach (INamespaceSymbol namespaceSymbol in namespaceSymbols)
             {
                 string namespaceToImport = namespaceSymbol.ToDisplayString();
                 if (!existingImportedNamespaces.Contains(namespaceToImport) &&
