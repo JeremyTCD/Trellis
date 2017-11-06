@@ -72,15 +72,20 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
 
                 // Do not create diagnostic for class under test declarations
+                // Do not create diagnostic for types that implement corelib interfaces, many have extension methods that can't be mocked and most
+                // are implemented in a fairly stable manner (e.g collection<T>s)
                 ITypeSymbol typeSymbol = context.SemanticModel.GetTypeInfo(initializer.Value).Type;
-                if (typeSymbol == null || typeSymbol == testClassContext.ClassUnderTest || typeSymbol.OriginalDefinition?.ToDisplayString() == "Moq.Mock<T>")
+                if (typeSymbol == null || 
+                    typeSymbol == testClassContext.ClassUnderTest || 
+                    typeSymbol.ToDisplayString().StartsWith("System.") ||
+                    typeSymbol.OriginalDefinition?.ToDisplayString() == "Moq.Mock<T>" ||
+                    typeSymbol.AllInterfaces.Any(i => i.ToDisplayString().StartsWith("System.")))
                 {
                     continue;
                 }
 
-                // Do not create diagnostic for types that only implement core framework interfaces
                 INamedTypeSymbol interfaceSymbol = typeSymbol.
-                    Interfaces.
+                    AllInterfaces.
                     FirstOrDefault(i => !i.ToDisplayString().StartsWith("System."));
 
                 if (interfaceSymbol != null)
