@@ -44,11 +44,11 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
-            MethodDeclarationSyntax oldMethodDeclaration = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
+            MethodDeclarationSyntax oldMethodDeclaration = testClassContext.CompilationUnit.FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
             ExpressionStatementSyntax newMockRepositoryVerifyAllExpression = TestingHelper.CreateMockRepositoryVerifyAllExpression(syntaxGenerator);
             MethodDeclarationSyntax newMethodDeclaration = oldMethodDeclaration.AddBodyStatements(newMockRepositoryVerifyAllExpression);
 

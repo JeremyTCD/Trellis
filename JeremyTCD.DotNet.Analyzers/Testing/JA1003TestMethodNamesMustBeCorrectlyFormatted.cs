@@ -38,42 +38,28 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null)
             {
                 return;
             }
-
-            // Get class under test members
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if (classDeclaration == null)
-            {
-                return;
-            }
-            ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace);
-            if (classUnderTest == null)
-            {
-                return;
-            }
-            IEnumerable<ISymbol> classUnderTestMembers = classUnderTest.GetMembers();
 
             // Get test methods
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = TestingHelper.GetTestMethodDeclarations(compilationUnit, semanticModel);
-            foreach (MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
+            foreach ((MethodDeclarationSyntax testMethodDeclaration, IMethodSymbol methodUnderTest) in testClassContext.
+                TestMethodDeclarationsAndTheirMethodUnderTests)
             {
-                string testMethodName = testMethodDeclaration.Identifier.ValueText;
-                int underscoreIndex = testMethodName.IndexOf('_');
-                // If no underscore or it is the first character, name is incorrectly formatted
-                if (underscoreIndex > 1)
+                if (methodUnderTest == null)
                 {
-                    string expectedMemberName = testMethodName.Substring(0, underscoreIndex);
-                    if (classUnderTestMembers.Any(m => m.Name == expectedMemberName))
+                    // Check if test method name starts with the name of any method in the test class
+                    if (testClassContext.ClassUnderTestMethods.
+                        Any(m => testMethodDeclaration.Identifier.ValueText.StartsWith($"{m.Name}_")))
                     {
                         continue;
                     }
+                }
+                else if (testMethodDeclaration.Identifier.ValueText.StartsWith($"{methodUnderTest.Name}_"))
+                {
+                    continue;
                 }
 
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, testMethodDeclaration.Identifier.GetLocation()));

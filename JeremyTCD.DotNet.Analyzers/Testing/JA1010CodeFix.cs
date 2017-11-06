@@ -47,25 +47,18 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
-            SemanticModel semanticModel = documentEditor.SemanticModel;
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
             // Get test class declaration
-            ClassDeclarationSyntax oldTestClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(oldTestClassDeclaration, semanticModel.Compilation.GlobalNamespace);
-            ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
-            Document classUnderTestDocument = document.Project.Solution.GetDocument(classUnderTestDeclaration.SyntaxTree);
-            SemanticModel classUnderTestSemanticModel = semanticModel.Compilation.GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
+            Document classUnderTestDocument = document.Project.Solution.GetDocument(testClassContext.ClassUnderTestDeclaration.SyntaxTree);
+            SemanticModel classUnderTestSemanticModel = await classUnderTestDocument.GetSemanticModelAsync().ConfigureAwait(false);
 
             // Get correct order
             MemberDeclarationSyntax[] orderedTestClassMembers = TestingHelper.
                 OrderTestClassMembers(
-                    oldTestClassDeclaration, 
-                    classUnderTestDeclaration, 
-                    semanticModel, 
-                    classUnderTest,
+                    testClassContext,
                     classUnderTestSemanticModel).
                 Cast<MemberDeclarationSyntax>().ToArray();
 
@@ -73,10 +66,11 @@ namespace JeremyTCD.DotNet.Analyzers
             SyntaxHelper.FixMemberTrivia(orderedTestClassMembers);
 
             // Re-construct test class with methods in order consistent with class under test methods
-            ClassDeclarationSyntax newTestClassDeclaration = oldTestClassDeclaration.
+            ClassDeclarationSyntax newTestClassDeclaration = testClassContext.
+                ClassDeclaration.
                 WithMembers(SyntaxFactory.List(orderedTestClassMembers));
 
-            documentEditor.ReplaceNode(oldTestClassDeclaration, newTestClassDeclaration);
+            documentEditor.ReplaceNode(testClassContext.ClassDeclaration, newTestClassDeclaration);
 
             return documentEditor.GetChangedDocument();
         }

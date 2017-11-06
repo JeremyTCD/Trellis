@@ -47,22 +47,22 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            SemanticModel semanticModel = documentEditor.SemanticModel;
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
             // Renamed method
-            MethodDeclarationSyntax oldDataMethodDeclaration = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
+            MethodDeclarationSyntax oldDataMethodDeclaration = testClassContext.
+                CompilationUnit.
+                FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
             string oldDataMethodName = oldDataMethodDeclaration.Identifier.ValueText;
             string newDataMethodName = diagnostic.Properties[JA1006TestDataMethodNamesMustBeCorrectlyFormatted.DataMethodNameProperty];
             MethodDeclarationSyntax newDataMethodDeclaration = oldDataMethodDeclaration.WithIdentifier(SyntaxFactory.Identifier(newDataMethodName).WithTriviaFrom(oldDataMethodDeclaration.Identifier));
             documentEditor.ReplaceNode(oldDataMethodDeclaration, newDataMethodDeclaration);
 
-            // Renamed references to method
-            IEnumerable<IdentifierNameSyntax> referenceIdentifiers = compilationUnit.
-                DescendantNodes().
-                OfType<IdentifierNameSyntax>().
+            // Rename references to method
+            IEnumerable<IdentifierNameSyntax> referenceIdentifiers = testClassContext.
+                GetDescendantNodes<IdentifierNameSyntax>().
                 Where(i => i.ToString() == oldDataMethodName);
             SyntaxNode newIdentifier = syntaxGenerator.IdentifierName(newDataMethodName);
 

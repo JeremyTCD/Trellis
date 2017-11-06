@@ -46,30 +46,26 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            SemanticModel semanticModel = documentEditor.SemanticModel;
-
-            // Get test class
-            ClassDeclarationSyntax testClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
             // Check if mock repository field exists
-            VariableDeclarationSyntax mockRepositoryVariableDeclaration = TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, semanticModel);
-            if (mockRepositoryVariableDeclaration == null)
+            if (testClassContext.MockRepositoryVariableDeclaration == null)
             {
-                FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
-                documentEditor.InsertMembers(testClassDeclaration, 0, new[] { mockRepositoryFieldDeclaration });
-                mockRepositoryVariableDeclaration = mockRepositoryFieldDeclaration.Declaration;
+                FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.
+                    CreateMockRepositoryFieldDeclaration(syntaxGenerator);
+                documentEditor.InsertMembers(testClassContext.ClassDeclaration, 0, new[] { mockRepositoryFieldDeclaration });
             }
 
             // Replace object creation expression
-            ObjectCreationExpressionSyntax oldExpression = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as ObjectCreationExpressionSyntax;
+            ObjectCreationExpressionSyntax oldExpression = testClassContext.
+                CompilationUnit.
+                FindNode(diagnostic.Location.SourceSpan) as ObjectCreationExpressionSyntax;
             InvocationExpressionSyntax newExpression = TestingHelper.
                 CreateMockRepositoryCreateInvocationExpression(
                     syntaxGenerator,
                     (oldExpression.Type as GenericNameSyntax).TypeArgumentList.Arguments.First().ToString(),
-                    mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText,
                     oldExpression.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault()?.Arguments).
                 WithTriviaFrom(oldExpression);
             documentEditor.ReplaceNode(oldExpression, newExpression);

@@ -37,26 +37,23 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null)
             {
                 return;
             }
 
             // Return if class name begins with the name of a testable class and has a valid suffix
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            if ((TestingHelper.IsUnitTestClass(classDeclaration) ||
-                TestingHelper.IsIntegrationTestClass(classDeclaration) ||
-                TestingHelper.IsEndToEndTestClass(classDeclaration)) &&
-                TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace) != null)
+            if ((testClassContext.IsUnitTestClass ||
+                testClassContext.IsIntegrationTestClass ||
+                testClassContext.IsEndToEndTestClass) &&
+                testClassContext.ClassUnderTest != null)
             {
                 return;
             }
 
             // Add diagnostic
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassContext.ClassDeclaration.Identifier.GetLocation()));
         }
     }
 }

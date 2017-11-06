@@ -2,8 +2,10 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
@@ -37,55 +39,36 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel testClassSemanticModel = context.SemanticModel;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null || testClassContext.ClassUnderTest == null)
             {
                 return;
             }
 
-            // Get test class declaration
-            ClassDeclarationSyntax testClassDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if (testClassDeclaration == null)
-            {
-                return;
-            }
-
-            // Get class under test declaration
-            ITypeSymbol classUnderTest = TestingHelper.GetClassUnderTest(testClassDeclaration, testClassSemanticModel.Compilation.GlobalNamespace);
-            if (classUnderTest == null)
-            {
-                return;
-            }
-            ClassDeclarationSyntax classUnderTestDeclaration = classUnderTest.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as ClassDeclarationSyntax;
-            if (classUnderTestDeclaration == null)
+            // TODO null when project is built 
+            if (testClassContext.ClassUnderTestDeclaration == null)
             {
                 return;
             }
 
             // Get class under test semantic model
-            Compilation compilation = testClassSemanticModel.Compilation;
-            if (!compilation.ContainsSyntaxTree(classUnderTestDeclaration.SyntaxTree))
+            Compilation compilation = testClassContext.Compilation;
+            if (!testClassContext.Compilation.ContainsSyntaxTree(testClassContext.ClassUnderTestDeclaration.SyntaxTree))
             {
-                compilation = compilation.AddSyntaxTrees(classUnderTestDeclaration.SyntaxTree);
+                compilation = testClassContext.Compilation.AddSyntaxTrees(testClassContext.ClassUnderTestDeclaration.SyntaxTree);
             }
             SemanticModel classUnderTestSemanticModel = compilation.
-                GetSemanticModel(classUnderTestDeclaration.SyntaxTree);
+                GetSemanticModel(testClassContext.ClassUnderTestDeclaration.SyntaxTree);
 
             // Get correct order
             IEnumerable<SyntaxNode> orderedTestClassMembers = TestingHelper.OrderTestClassMembers(
-                testClassDeclaration,
-                classUnderTestDeclaration,
-                testClassSemanticModel,
-                classUnderTest,
+                testClassContext,
                 classUnderTestSemanticModel);
 
             // Create diagnostic
-            if (!orderedTestClassMembers.SequenceEqual(testClassDeclaration.ChildNodes()))
+            if (!orderedTestClassMembers.SequenceEqual(testClassContext.MemberDeclarations))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassDeclaration.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassContext.ClassDeclaration.Identifier.GetLocation()));
             }
         }
     }

@@ -5,12 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -19,9 +16,6 @@ namespace JeremyTCD.DotNet.Analyzers
     {
         public static string DiagnosticId = nameof(JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests).Substring(0, 6);
         public const string FixDataProperty = "FixDataProperty";
-        public const string TestClassFullyQualifiedNameProperty = "TestClassFullyQualifiedNameProperty";
-        public const string ClassUnderTestNameProperty = "ClassUnderTestNameProperty";
-        public const string ClassUnderTestFullyQualifiedNameProperty = "ClassUnderTestFullyQualifiedNameProperty";
 
         private static readonly DiagnosticDescriptor Descriptor =
             new DiagnosticDescriptor(DiagnosticId,
@@ -46,69 +40,26 @@ namespace JeremyTCD.DotNet.Analyzers
         // TODO unit test project has reference to main project but not vice versa, therefore unit test class always null
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Return if document contains test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
-            {
-                return;
-            }
-
-            // Get unit test class
-            ClassDeclarationSyntax testClassDeclaration = compilationUnit.
-                DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault() as ClassDeclarationSyntax;
-            if (testClassDeclaration == null)
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null || testClassContext.ClassUnderTest == null)
             {
                 return;
             }
 
             // Return if not unit test class
-            if (!TestingHelper.IsUnitTestClass(testClassDeclaration))
+            if (!testClassContext.IsUnitTestClass)
             {
                 return;
             }
-
-            // Get class under test
-            ITypeSymbol classUnderTest = TestingHelper.
-                GetClassUnderTest(testClassDeclaration, semanticModel.Compilation.GlobalNamespace);
-            if (classUnderTest == null)
-            {
-                return;
-            }
-
-            // Get unit test class
-            ITypeSymbol unitTestClass = semanticModel.GetDeclaredSymbol(testClassDeclaration) as ITypeSymbol;
-            if (unitTestClass == null)
-            {
-                return;
-            }
-
-            // Get test methods
-            IEnumerable<IMethodSymbol> testMethods = TestingHelper.
-                GetMethodMembers(unitTestClass).
-                Where(m => TestingHelper.IsTestMethod(m));
-
-            // Get test method declarations
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = testMethods.
-                Select(m => m.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax).
-                Where(m => m != null);
-
-            // Create map of methods that test methods test
-            Dictionary<MethodDeclarationSyntax, IMethodSymbol> methodsThatTestMethodsTest = new Dictionary<MethodDeclarationSyntax, IMethodSymbol>();
-            foreach(MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
-            {
-                methodsThatTestMethodsTest.Add(testMethodDeclaration, TestingHelper.GetMethodUnderTest(testMethodDeclaration, classUnderTest, semanticModel));
-            }
-
-            // Create dictionary for speeding up second pass
-            Dictionary<XmlElementSyntax, Tuple<string, string>> exceptionElementValues = new Dictionary<XmlElementSyntax, Tuple<string, string>>();
 
             // Iterate over methods in main class
             string fixData = string.Empty;
-            foreach (IMethodSymbol methodUnderTest in TestingHelper.GetMethodMembers(classUnderTest))
+            foreach (IMethodSymbol methodUnderTest in testClassContext.ClassUnderTestMethods)
             {
-                MethodDeclarationSyntax methodUnderTestDeclaration = methodUnderTest.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
+                MethodDeclarationSyntax methodUnderTestDeclaration = methodUnderTest.
+                    DeclaringSyntaxReferences.
+                    FirstOrDefault()?.
+                    GetSyntax() as MethodDeclarationSyntax;
                 if (methodUnderTestDeclaration == null)
                 {
                     continue;
@@ -116,10 +67,16 @@ namespace JeremyTCD.DotNet.Analyzers
 
                 // Get exception elements that are not empty
                 List<XmlElementSyntax> exceptionElements = TestingHelper.GetMethodExceptionXmlElements(methodUnderTestDeclaration, methodUnderTest);
+                if(exceptionElements.Count() == 0)
+                {
+                    continue;
+                }
 
                 // Find all tests for the method under test
-                List<MethodDeclarationSyntax> methodUnderTestTestMethods = testMethodDeclarations.
-                    Where(m => methodsThatTestMethodsTest[m] == methodUnderTest).ToList();
+                List<MethodDeclarationSyntax> methodUnderTestTestMethods = testClassContext.GetMethodUnderTestTestMethodDeclarations(methodUnderTest);
+
+                // Create dictionary for speeding up second pass
+                Dictionary<XmlElementSyntax, (string, string)> exceptionElementValues = new Dictionary<XmlElementSyntax, (string, string)>();
 
                 // Filter out exception elements that do not have cref attributes or that have valid test methods
                 int numExceptionElements = exceptionElements.Count();
@@ -138,11 +95,11 @@ namespace JeremyTCD.DotNet.Analyzers
                         RemoveNonAlphaNumericCharacters().
                         ToTitleCase().
                         Replace("Thrown", "");
-                    string testMethodName = $"{methodUnderTest.Name}_Throws{exceptionName}{exceptionDescription}";
+                    string expectedTestMethodName = $"{methodUnderTest.Name}_Throws{exceptionName}{exceptionDescription}";
 
                     // Exception outcome has test method
                     MethodDeclarationSyntax exceptionOutcomeTestMethodDeclaration = methodUnderTestTestMethods.
-                        FirstOrDefault(m => m.Identifier.ValueText == testMethodName);
+                        FirstOrDefault(m => m.Identifier.ValueText == expectedTestMethodName);
                     if (exceptionOutcomeTestMethodDeclaration != null)
                     {
                         exceptionElements.RemoveAt(i);
@@ -150,14 +107,14 @@ namespace JeremyTCD.DotNet.Analyzers
                         continue;
                     }
 
-                    exceptionElementValues.Add(exceptionElement, new Tuple<string, string>(exceptionName, testMethodName));
+                    exceptionElementValues.Add(exceptionElement, (exceptionName, expectedTestMethodName));
                 }
 
                 // Add diagnostics
                 foreach (XmlElementSyntax exceptionElement in exceptionElements)
                 {
                     string exceptionName = exceptionElementValues[exceptionElement].Item1;
-                    string correctTestMethodName = exceptionElementValues[exceptionElement].Item2;
+                    string expectedTestMethodName = exceptionElementValues[exceptionElement].Item2;
                     fixData += ";";
 
                     // Check if there are any remaining method under test test methods that call Assert.Throws<Exception>
@@ -173,7 +130,7 @@ namespace JeremyTCD.DotNet.Analyzers
                         fixData += ',';
                     }
 
-                    fixData += correctTestMethodName;
+                    fixData += expectedTestMethodName;
                     fixData += ',';
                     fixData += exceptionName;
                     fixData += ',';
@@ -186,10 +143,7 @@ namespace JeremyTCD.DotNet.Analyzers
             {
                 ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
                 builder.Add(FixDataProperty, fixData);
-                builder.Add(TestClassFullyQualifiedNameProperty, unitTestClass.ToDisplayString());
-                builder.Add(ClassUnderTestNameProperty, classUnderTest.Name.ToString());
-                builder.Add(ClassUnderTestFullyQualifiedNameProperty, classUnderTest.ToDisplayString());
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassDeclaration.Identifier.GetLocation(), builder.ToImmutable()));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, testClassContext.ClassDeclaration.Identifier.GetLocation(), builder.ToImmutable()));
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Generic;
@@ -47,67 +46,54 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            SemanticModel semanticModel = documentEditor.SemanticModel;
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
-            ExpressionSyntax existingExpression = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as ExpressionSyntax;
+            ExpressionSyntax existingExpression = testClassContext.CompilationUnit.FindNode(diagnostic.Location.SourceSpan) as ExpressionSyntax;
             // TODO assumes expression's first argument list is the relevant one
             IEnumerable<ArgumentSyntax> existingExpressionArguments = existingExpression.DescendantNodes().OfType<ArgumentListSyntax>().First().Arguments;
-            INamedTypeSymbol classUnderTest = documentEditor.
-                SemanticModel.
-                Compilation.
-                GetTypeByMetadataName(diagnostic.Properties[JA1005TestSubjectMustBeInstantiatedInAValidCreateMethod.ClassUnderTestFullyQualifiedNameProperty]);
-            IMethodSymbol classUnderTestConstructor = classUnderTest.Constructors.OrderByDescending(c => c.Parameters.Count()).First();
-            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = classUnderTestConstructor.Parameters;
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
             if (diagnostic.Properties.ContainsKey(JA1005TestSubjectMustBeInstantiatedInAValidCreateMethod.NoValidCreateMethodProperty))
             {
-                string methodName = diagnostic.Properties[JA1005TestSubjectMustBeInstantiatedInAValidCreateMethod.CreateMethodNameProperty];
+                string createMethodName = diagnostic.Properties[JA1005TestSubjectMustBeInstantiatedInAValidCreateMethod.CreateMethodNameProperty];
                 // TODO more robust way to determine if method returns a mock
-                bool createMockCreateMethod = methodName.StartsWith("CreateMock");
+                bool createMockCreateMethod = createMethodName.StartsWith("CreateMock");
 
                 // Add a mock repository field declaration if necessary
-                if (createMockCreateMethod && TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, semanticModel) == null)
+                if (createMockCreateMethod && testClassContext.MockRepositoryVariableDeclaration == null)
                 {
-                    documentEditor.InsertMembers(classDeclaration, 0, new[] { TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator) });
+                    documentEditor.
+                        InsertMembers(testClassContext.ClassDeclaration, 0, new[] { TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator) });
                 }
 
                 // Add newly required usings
-                List<SyntaxNode> newUsingDirectives = TestingHelper.
-                    CreateMissingUsingDirectives(
-                        classUnderTestConstructorParameters.Select(p => p.Type.ContainingNamespace), 
-                        classDeclaration,
-                        compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().FirstOrDefault());
-                documentEditor.InsertMembers(compilationUnit, 0, newUsingDirectives);
+                List<SyntaxNode> newUsingDirectives = TestingHelper.CreateMissingUsingDirectives(testClassContext);
+                documentEditor.InsertMembers(testClassContext.CompilationUnit, 0, newUsingDirectives);
 
                 MethodDeclarationSyntax newCreateMethodDeclaration = TestingHelper.CreateCreateMethodDeclaration(
-                    classUnderTest,
+                    testClassContext.ClassUnderTest,
                     syntaxGenerator,
                     createMockCreateMethod,
-                    classUnderTestConstructorParameters);
+                    testClassContext.ClassUnderTestMainConstructor.Parameters);
 
-                MethodDeclarationSyntax existingCreateMethodDeclaration = classDeclaration.
-                    DescendantNodes().
-                    OfType<MethodDeclarationSyntax>().
-                    Select(m => semanticModel.GetDeclaredSymbol(m) as IMethodSymbol).
+                MethodDeclarationSyntax existingCreateMethodDeclaration = testClassContext.
+                    Methods.
                     Where(m =>
                     {
-                        if (m == null || !string.Equals(m.Name, methodName))
+                        if (!string.Equals(m.Name, createMethodName))
                         {
                             return false;
                         }
 
-                        if (!createMockCreateMethod && m.ReturnType == classUnderTest)
+                        if (!createMockCreateMethod && m.ReturnType == testClassContext.ClassUnderTest)
                         {
                             return true;
                         }
 
                         if (createMockCreateMethod &&
-                            m.ReturnType.OriginalDefinition == semanticModel.Compilation.GetTypeByMetadataName("Moq.Mock`1") &&
-                            (m.ReturnType as INamedTypeSymbol)?.TypeArguments.FirstOrDefault() == classUnderTest)
+                            m.ReturnType.OriginalDefinition == testClassContext.SemanticModel.Compilation.GetTypeByMetadataName("Moq.Mock`1") &&
+                            (m.ReturnType as INamedTypeSymbol)?.TypeArguments.FirstOrDefault() == testClassContext.ClassUnderTest)
                         {
                             return true;
                         }
@@ -119,7 +105,7 @@ namespace JeremyTCD.DotNet.Analyzers
                     FirstOrDefault()?.
                     GetSyntax() as MethodDeclarationSyntax;
 
-                // TODO check if a method with the same name and return type already exists (move to testinghelper), if it does, replace it, otherwise, add the new method to
+                // Check if a method with the same name and return type already exists, if it does, replace it, otherwise, add the new method to
                 // the test class
                 if (existingCreateMethodDeclaration != null)
                 {
@@ -127,7 +113,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
                 else
                 {
-                    documentEditor.AddMember(classDeclaration, newCreateMethodDeclaration);
+                    documentEditor.AddMember(testClassContext.ClassDeclaration, newCreateMethodDeclaration);
                 }
             }
 
@@ -137,7 +123,7 @@ namespace JeremyTCD.DotNet.Analyzers
                     diagnostic.Properties[JA1005TestSubjectMustBeInstantiatedInAValidCreateMethod.CreateMethodNameProperty],
                     existingExpressionArguments,
                     syntaxGenerator,
-                    classUnderTestConstructorParameters);
+                    testClassContext.ClassUnderTestMainConstructor.Parameters);
                 documentEditor.ReplaceNode(existingExpression, newExpression);
             }
 

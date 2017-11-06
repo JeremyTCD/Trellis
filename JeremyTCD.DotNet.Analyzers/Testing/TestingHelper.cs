@@ -24,17 +24,17 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static InvocationExpressionSyntax CreateMockRepositoryCreateInvocationExpression(SyntaxGenerator syntaxGenerator,
-            string typeName, string mockRepositoryVariableName, IEnumerable<SyntaxNode> arguments = null)
+            string typeName, IEnumerable<SyntaxNode> arguments = null)
         {
             SyntaxNode typeIdentifier = syntaxGenerator.IdentifierName(typeName);
             SyntaxNode memberAccessExpression = syntaxGenerator.MemberAccessExpression(
-                syntaxGenerator.IdentifierName(mockRepositoryVariableName),
+                syntaxGenerator.IdentifierName("_mockRepository"),
                 syntaxGenerator.GenericName("Create", typeIdentifier));
 
             return (InvocationExpressionSyntax)syntaxGenerator.InvocationExpression(memberAccessExpression, arguments ?? new SyntaxNode[] { });
         }
 
-        public static VariableDeclarationSyntax GetMockRepositoryFieldDeclaration(CompilationUnitSyntax compilationUnit, SemanticModel semanticModel)
+        public static VariableDeclarationSyntax GetMockRepositoryVariableDeclaration(CompilationUnitSyntax compilationUnit, SemanticModel semanticModel)
         {
             // TODO check for default name _mockRepository
             // TODO could be declared as a property as well
@@ -171,7 +171,7 @@ namespace JeremyTCD.DotNet.Analyzers
                         return childMemberAccessExpression != null && childMemberAccessExpression.Name.ToString() == "Setup";
                     }))
                 {
-                    return testClassSemanticModel.GetDeclaredSymbol(memberAccessExpression) as IMethodSymbol;
+                    return testClassSemanticModel.GetSymbolInfo(memberAccessExpression).Symbol as IMethodSymbol;
                 }
             }
 
@@ -212,56 +212,46 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         public static List<SyntaxNode> OrderTestClassMembers(
-            ClassDeclarationSyntax testClassDeclaration,
-            ClassDeclarationSyntax classUnderTestDeclaration,
-            SemanticModel testClassSemanticModel,
-            ITypeSymbol classUnderTest,
+            TestClassContext testClassContext,
             SemanticModel classUnderTestSemanticModel)
         {
-            IEnumerable<SyntaxNode> testClassMembers = testClassDeclaration.ChildNodes();
-
-            IEnumerable<MethodDeclarationSyntax> testClassMethodDeclarations = testClassMembers.OfType<MethodDeclarationSyntax>();
-
-            // TODO property, indexer tests
-            IEnumerable<MethodDeclarationSyntax> classUnderTestMethodDeclarations = classUnderTestDeclaration.ChildNodes().OfType<MethodDeclarationSyntax>();
-
             // TODO not very efficient, also does not handle properties etc
             List<SyntaxNode> result = new List<SyntaxNode>();
-            result.AddRange(testClassMembers.OfType<FieldDeclarationSyntax>().OrderBy(f => f.Declaration.Variables.First().Identifier.ValueText));
-            result.AddRange(testClassMembers.OfType<ConstructorDeclarationSyntax>());
+            result.AddRange(testClassContext.MemberDeclarations.OfType<FieldDeclarationSyntax>().OrderBy(f => f.Declaration.Variables.First().Identifier.ValueText));
+            result.AddRange(testClassContext.MemberDeclarations.OfType<ConstructorDeclarationSyntax>());
 
-            IEnumerable<MethodDeclarationSyntax> testAndDataMethodDeclarations = testClassMethodDeclarations.
-                Where(m => IsTestMethod(m, testClassSemanticModel) || IsTestDataMethod(m));
-            if (testAndDataMethodDeclarations.Count() > 0)
+            if (testClassContext.TestMethods.Count() > 0)
             {
-                if (classUnderTestMethodDeclarations.Count() == 0)
+                if (testClassContext.ClassUnderTestMethods.Count() == 0)
                 {
-                    result.AddRange(testAndDataMethodDeclarations);
+                    foreach (MethodDeclarationSyntax testMethodDeclaration in testClassContext.TestMethodDeclarations)
+                    {
+                        result.Add(testMethodDeclaration);
+                        if (testClassContext.
+                            TestMethodDeclarationsAndTheirDataMethodDeclarations.
+                            TryGetValue(testMethodDeclaration, out MethodDeclarationSyntax dataMethodDeclaration))
+                        {
+                            result.Add(dataMethodDeclaration);
+                        }
+                    }
                 }
                 else
                 {
-                    Dictionary<MethodDeclarationSyntax, IMethodSymbol> methodsThatTestMethodsTest = new Dictionary<MethodDeclarationSyntax, IMethodSymbol>();
-                    foreach (MethodDeclarationSyntax testMethodDeclaration in testAndDataMethodDeclarations.Where(m => IsTestMethod(m, testClassSemanticModel)))
+                    foreach (IMethodSymbol methodUnderTest in testClassContext.ClassUnderTestMethods)
                     {
-                        methodsThatTestMethodsTest.Add(testMethodDeclaration, GetMethodUnderTest(testMethodDeclaration, classUnderTest, testClassSemanticModel));
-                    }
+                        SyntaxNode methodUnderTestDeclaration = methodUnderTest.DeclaringSyntaxReferences.First().GetSyntax();
 
-                    foreach (MethodDeclarationSyntax classUnderTestMethodDeclaration in classUnderTestMethodDeclarations)
-                    {
-                        IMethodSymbol classUnderTestMethod = classUnderTestSemanticModel.GetDeclaredSymbol(classUnderTestMethodDeclaration) as IMethodSymbol;
-                        IEnumerable<MethodDeclarationSyntax> classUnderTestMethodTestMethodDeclarations = methodsThatTestMethodsTest.
-                            Where(kvp =>
-                            {
-                                return classUnderTestMethod.DeclaringSyntaxReferences.First().GetSyntax() == kvp.Value.DeclaringSyntaxReferences.First().GetSyntax();
-                            }).
-                            Select(kvp => kvp.Key);
+                        IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = testClassContext.
+                            TestMethodDeclarationsAndTheirMethodUnderTests.
+                            Where(tuple => tuple.Item2?.DeclaringSyntaxReferences.First().GetSyntax() == methodUnderTestDeclaration).
+                            Select(tuple => tuple.Item1);
 
-                        foreach (MethodDeclarationSyntax classUnderTestMethodTestMethodDeclaration in classUnderTestMethodTestMethodDeclarations)
+                        foreach (MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
                         {
-                            result.Add(classUnderTestMethodTestMethodDeclaration);
-                            MethodDeclarationSyntax dataMethodDeclaration = testClassMethodDeclarations.
-                                FirstOrDefault(c => c.Identifier.ValueText == classUnderTestMethodTestMethodDeclaration.Identifier.ValueText + "_Data");
-                            if (dataMethodDeclaration != null)
+                            result.Add(testMethodDeclaration);
+                            if (testClassContext.
+                                TestMethodDeclarationsAndTheirDataMethodDeclarations.
+                                TryGetValue(testMethodDeclaration, out MethodDeclarationSyntax dataMethodDeclaration))
                             {
                                 result.Add(dataMethodDeclaration);
                             }
@@ -270,20 +260,55 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
             }
 
-            result.AddRange(testClassMembers.
+            result.AddRange(testClassContext.
+                MemberDeclarations.
+                Except(result).
                 OfType<MethodDeclarationSyntax>().
-                Except(testAndDataMethodDeclarations).
                 OrderBy(m => m.Identifier.ValueText));
-            result.AddRange(testClassMembers.OfType<ClassDeclarationSyntax>().OrderBy(c => c.Identifier.ValueText));
+            result.AddRange(testClassContext.MemberDeclarations.OfType<ClassDeclarationSyntax>().OrderBy(c => c.Identifier.ValueText));
 
-            if (result.Count() != testClassMembers.Count())
+            if (result.Count() != testClassContext.MemberDeclarations.Count())
             {
-                result.AddRange(testClassMembers.Except(result));
+                result.AddRange(testClassContext.MemberDeclarations.Except(result));
             }
 
             return result;
         }
 
+        public static MethodDeclarationSyntax GetDataMethodDeclaration(MethodDeclarationSyntax testMethodDeclaration,
+            TestClassContext testClassContext, SemanticModel semanticModel)
+        {
+            AttributeSyntax attributeSyntax = testMethodDeclaration.
+                DescendantNodes().
+                OfType<AttributeSyntax>().
+                Where(a => semanticModel.GetSymbolInfo(a).Symbol.ToDisplayString() == "Xunit.MemberDataAttribute.MemberDataAttribute(string, params object[])").
+                FirstOrDefault();
+            if (attributeSyntax  == null)
+            {
+                return null;
+            }
+            InvocationExpressionSyntax attributeSyntaxFirstArgumentExpression = attributeSyntax.
+                ArgumentList.
+                Arguments.
+                FirstOrDefault()?.Expression as InvocationExpressionSyntax;
+            if (attributeSyntaxFirstArgumentExpression == null || attributeSyntaxFirstArgumentExpression.Expression.ToString() != "nameof")
+            {
+                return null;
+            }
+            IdentifierNameSyntax dataMethodIdentifier = attributeSyntaxFirstArgumentExpression.
+                ArgumentList.
+                Arguments.
+                FirstOrDefault()?.Expression as IdentifierNameSyntax;
+            if (dataMethodIdentifier == null)
+            {
+                return null;
+            }
+            string dataMethodName = dataMethodIdentifier.ToString();
+            return testClassContext.
+                MethodDeclarations.
+                Where(m => m.Identifier.ValueText == dataMethodName).
+                FirstOrDefault();
+        }
 
         public static MethodDeclarationSyntax CreateCreateMethodDeclaration(INamedTypeSymbol classUnderTest,
             SyntaxGenerator syntaxGenerator,
@@ -312,7 +337,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 Select(p => syntaxGenerator.Argument(syntaxGenerator.IdentifierName((p as ParameterSyntax).Identifier.ValueText)));
 
             SyntaxNode classUnderTestCreation = createMockCreateMethod ?
-                CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, classUnderTest.Name, "_mockRepository", resultExpressionArguments)
+                CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, classUnderTest.Name, resultExpressionArguments)
                 : syntaxGenerator.ObjectCreationExpression(classUnderTest, resultExpressionArguments);
 
             SyntaxNode returnStatement = syntaxGenerator.ReturnStatement(classUnderTestCreation);
@@ -468,6 +493,14 @@ namespace JeremyTCD.DotNet.Analyzers
                     statements: new[] { testSubjectLocalDeclaration, resultLocalDeclaration, verifyAllInvocation }) as MethodDeclarationSyntax;
 
             return methodDeclaration.AddAttributeLists(syntaxGenerator.Attribute("Fact") as AttributeListSyntax);
+        }
+
+        public static List<SyntaxNode> CreateMissingUsingDirectives(TestClassContext testClassContext)
+        {
+            return CreateMissingUsingDirectives(
+                   testClassContext.ClassUnderTestMainConstructor.Parameters.Select(p => p.Type.ContainingNamespace),
+                   testClassContext.ClassDeclaration,
+                   testClassContext.CompilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().FirstOrDefault());
         }
 
         public static List<SyntaxNode> CreateMissingUsingDirectives(

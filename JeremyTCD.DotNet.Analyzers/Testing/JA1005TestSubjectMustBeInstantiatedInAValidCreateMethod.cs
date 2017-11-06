@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -42,82 +43,73 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
-            {
-                return;
-            }
-
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            INamedTypeSymbol classUnderTestType = TestingHelper.GetClassUnderTest(classDeclaration, context.Compilation.GlobalNamespace) as INamedTypeSymbol;
-            if (classUnderTestType == null)
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null || testClassContext.ClassUnderTest == null)
             {
                 return;
             }
 
             // Return if class under test is an abstract class (no constructor arguments)
-            if (classUnderTestType.IsAbstract)
+            if (testClassContext.ClassUnderTest.IsAbstract)
             {
                 return;
             }
 
-            // Find all test method class under test or mock class under test local declarations
-            // TODO if declaration and assignment are separate
-            string classUnderTestName = classUnderTestType.Name.ToString();
-            string mockClassUnderTestTypeName = $"Moq.Mock<{classUnderTestType.ToDisplayString()}>";
-            string createClassUnderTestMethodName = $"Create{classUnderTestName}";
-            string createMockClassUnderTestMethodName = $"CreateMock{classUnderTestName}";
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = TestingHelper.
-                GetTestMethodDeclarations(compilationUnit, context.SemanticModel);
+            // Create create method names
+            string createClassUnderTestMethodName = $"Create{testClassContext.ClassUnderTestName}";
+            string createMockClassUnderTestMethodName = $"CreateMock{testClassContext.ClassUnderTestName}";
+            string classUnderTestFullyQualifiedName = testClassContext.ClassUnderTest.ToDisplayString();
+            string mockClassUnderTestFullyQualifiedName = $"Moq.Mock<{classUnderTestFullyQualifiedName}>";
 
-            IEnumerable<ExpressionSyntax> testMethodExpressions = testMethodDeclarations.
-                SelectMany(m => m.DescendantNodes().OfType<ExpressionSyntax>());
-
-            Dictionary<(string, ITypeSymbol), bool> CreateMethodStates = new Dictionary<(string, ITypeSymbol), bool>();
-            foreach (ExpressionSyntax expression in testMethodExpressions)
+            // Get expressions
+            IEnumerable<(SyntaxNode, string)> testSubjectInstantiationExpressions = testClassContext.
+                TestMethodDeclarations.
+                SelectMany(m => m.
+                    DescendantNodes().
+                    Where(n => n is ObjectCreationExpressionSyntax || n is InvocationExpressionSyntax).
+                    Select(n => {
+                        ITypeSymbol type = context.SemanticModel.GetTypeInfo(n).Type;
+                        string typeFullyQualifiedName = type.ToDisplayString();
+                        string expectedInvocationName = typeFullyQualifiedName == classUnderTestFullyQualifiedName ? createClassUnderTestMethodName :
+                            typeFullyQualifiedName == mockClassUnderTestFullyQualifiedName ? createMockClassUnderTestMethodName : null;
+                        return (n, expectedInvocationName);
+                    }).
+                    Where(n => n.Item2 != null));
+            if(testSubjectInstantiationExpressions.Count() == 0)
             {
-                bool isObjectCreationExpression = expression is ObjectCreationExpressionSyntax;
-                bool isInvocationExpression = expression is InvocationExpressionSyntax;
+                return;
+            }
 
-                // Continue if expression is not an object creation expression or an invocation expression
-                if (!isObjectCreationExpression && !isInvocationExpression)
-                {
-                    continue;
-                }
+            // Check if valid create methods exist
+            bool validCreateMethodExists = CheckValidCreateMethodExist(
+                testClassContext.ClassDeclaration,
+                createClassUnderTestMethodName,
+                classUnderTestFullyQualifiedName,
+                testClassContext);
+            bool validMockCreateMethodExists = CheckValidCreateMethodExist(
+                testClassContext.ClassDeclaration,
+                createMockClassUnderTestMethodName,
+                mockClassUnderTestFullyQualifiedName,
+                testClassContext);
 
-                // Check if expression returns class under test or a mock of it
-                ITypeSymbol returnType = context.SemanticModel.GetTypeInfo(expression).Type;
-                bool returnsClassUnderTest = returnType == classUnderTestType;
-                bool returnsMockClassUnderTest = string.Equals(returnType.ToDisplayString(), mockClassUnderTestTypeName);
-                if (!returnsClassUnderTest && !returnsMockClassUnderTest)
-                {
-                    continue;
-                }
-
-                // Check if valid create method exists
-                string createMethodName = returnsClassUnderTest ? createClassUnderTestMethodName : createMockClassUnderTestMethodName;
-                if (!CreateMethodStates.TryGetValue((createMethodName, returnType), out bool validCreateMethodExists))
-                {
-                    validCreateMethodExists = CheckValidCreateMethodExist(classDeclaration, createMethodName, returnType, classUnderTestType,
-                    context.SemanticModel);
-
-                    CreateMethodStates.Add((createMethodName, returnType), validCreateMethodExists);
-                }
+            foreach ((SyntaxNode expression, string expectedInvocationName) in testSubjectInstantiationExpressions)
+            {
+                // Check if required create method is valid and exists
+                bool requiredValidCreateMethodExists = expectedInvocationName.Equals(createClassUnderTestMethodName, StringComparison.OrdinalIgnoreCase) ? 
+                    validCreateMethodExists : validMockCreateMethodExists;
 
                 // Check if invocation is correct
                 // TODO assumes create method is not overloaded (it should not be, all parameters are optional and map to the constructor)
                 // TODO assumes parameters are valid
-                bool correctInvocation = (expression as InvocationExpressionSyntax)?.Expression.ToString() == createMethodName;
-                if (correctInvocation && validCreateMethodExists)
+                bool correctInvocation = (expression as InvocationExpressionSyntax)?.Expression.ToString() == expectedInvocationName;
+                if (correctInvocation && requiredValidCreateMethodExists)
                 {
                     continue;
                 }
 
                 ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
-                builder.Add(ClassUnderTestFullyQualifiedNameProperty, classUnderTestType.ToDisplayString());
-                builder.Add(CreateMethodNameProperty, returnType == classUnderTestType ? createClassUnderTestMethodName : createMockClassUnderTestMethodName);
+                builder.Add(ClassUnderTestFullyQualifiedNameProperty, classUnderTestFullyQualifiedName);
+                builder.Add(CreateMethodNameProperty, expectedInvocationName);
                 if (!correctInvocation)
                 {
                     builder.Add(InvocationInvalidProperty, null);
@@ -137,25 +129,25 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <param name="createMethod"></param>
         /// <param name="classUnderTestSymbol"></param>
         /// <returns></returns>
-        public bool CheckValidCreateMethodExist(ClassDeclarationSyntax classDeclarationSyntax, string expectedName, ITypeSymbol expectedReturnType, 
-            INamedTypeSymbol classUnderTestSymbol, SemanticModel semanticModel)
+        public bool CheckValidCreateMethodExist(
+            ClassDeclarationSyntax classDeclarationSyntax, 
+            string expectedName, 
+            string returnTypeFullyQualifiedName, 
+            TestClassContext testClassContext)
         {
-            IMethodSymbol createMethod = classDeclarationSyntax.
-                DescendantNodes().
-                OfType<MethodDeclarationSyntax>().
-                Select(m => semanticModel.GetDeclaredSymbol(m) as IMethodSymbol).
-                Where(m => m != null && m.ReturnType == expectedReturnType && m.Name == expectedName).
+            IMethodSymbol createMethod = testClassContext.
+                GetDescendantNodes<MethodDeclarationSyntax>().
+                Select(m => testClassContext.SemanticModel.GetDeclaredSymbol(m) as IMethodSymbol).
+                Where(m => m != null && m.ReturnType.ToDisplayString() == returnTypeFullyQualifiedName && m.Name == expectedName).
                 FirstOrDefault();
             if (createMethod == null)
             {
                 return false;
             }
 
+            // Ensure that parameters match and that create method parameters are optional
             IEnumerable<IParameterSymbol> createMethodParameters = createMethod.Parameters;
-
-            // Create method and constructor parameters must be identical
-            IMethodSymbol classUnderTestConstructor = classUnderTestSymbol.Constructors.OrderByDescending(c => c.Parameters.Count()).First();
-            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = classUnderTestConstructor.Parameters;
+            IEnumerable<IParameterSymbol> classUnderTestConstructorParameters = testClassContext.ClassUnderTestMainConstructor.Parameters;
             if (createMethodParameters.Count() != classUnderTestConstructorParameters.Count())
             {
                 return false;
@@ -177,8 +169,8 @@ namespace JeremyTCD.DotNet.Analyzers
             MethodDeclarationSyntax createMethodDeclaration = createMethod.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax;
             ReturnStatementSyntax returnStatement = createMethodDeclaration.Body.Statements.FirstOrDefault() as ReturnStatementSyntax;
             if (returnStatement == null ||
-                createMethod.ReturnType == classUnderTestSymbol && !(returnStatement.Expression is ObjectCreationExpressionSyntax) ||
-                createMethod.ReturnType != classUnderTestSymbol && !(returnStatement.Expression is InvocationExpressionSyntax)) // TODO ensure that MockRepository.Create is called
+                createMethod.ReturnType == testClassContext.ClassUnderTest && !(returnStatement.Expression is ObjectCreationExpressionSyntax) ||
+                createMethod.ReturnType != testClassContext.ClassUnderTest && !(returnStatement.Expression is InvocationExpressionSyntax)) // TODO ensure that MockRepository.Create is called
             {
                 return false;
             }

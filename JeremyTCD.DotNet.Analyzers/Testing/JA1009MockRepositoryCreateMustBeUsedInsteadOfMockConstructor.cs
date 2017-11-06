@@ -41,20 +41,19 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null)
             {
                 return;
             }
 
+
             // Find object creation expressions
-            IEnumerable<ObjectCreationExpressionSyntax> objectCreationExpressions = compilationUnit.DescendantNodes().OfType<ObjectCreationExpressionSyntax>();
+            IEnumerable<ObjectCreationExpressionSyntax> objectCreationExpressions = testClassContext.
+                GetDescendantNodes<ObjectCreationExpressionSyntax>();
             foreach(ObjectCreationExpressionSyntax objectCreationExpression in objectCreationExpressions)
             {
-                if(semanticModel.GetTypeInfo(objectCreationExpression).Type.OriginalDefinition?.ToDisplayString() == "Moq.Mock<T>")
+                if(testClassContext.SemanticModel.GetTypeInfo(objectCreationExpression).Type.OriginalDefinition?.ToDisplayString() == "Moq.Mock<T>")
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, objectCreationExpression.GetLocation()));
                 }

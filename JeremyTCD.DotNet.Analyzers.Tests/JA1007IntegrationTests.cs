@@ -24,13 +24,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
                         ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething;" +
                         "DoSomething_ThrowsArgumentExceptionOnceInAwhile,ArgumentException,DoSomething;" +
-                        "DoSomethingElse_ThrowsInvalidOperationExceptionOnceInABlueMoon,InvalidOperationException,DoSomethingElse"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreNotTested.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreNotTested.ClassUnderTest"}
+                        "DoSomethingElse_ThrowsInvalidOperationExceptionOnceInABlueMoon,InvalidOperationException,DoSomethingElse"}
                 }
             };
 
@@ -49,13 +43,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Properties = new Dictionary<string, string>()
                 {
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
-                        ";DoSomething_InvalidDescription,DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreTestedByIncorrectlyNamedMethods.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticIfExceptionOutcomesAreTestedByIncorrectlyNamedMethods.ClassUnderTest"}
+                        ";DoSomething_InvalidDescription,DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"}
                 }
             };
 
@@ -74,13 +62,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Properties = new Dictionary<string, string>()
                 {
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
-                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromImplementationsAreNotTested.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromImplementationsAreNotTested.ClassUnderTest"}
+                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"}
                 }
             };
 
@@ -99,13 +81,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Properties = new Dictionary<string, string>()
                 {
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
-                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromAbstractClassesAreNotTested.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromAbstractClassesAreNotTested.ClassUnderTest"}
+                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"}
                 }
             };
 
@@ -124,13 +100,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Properties = new Dictionary<string, string>()
                 {
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
-                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromBaseClassesAreNotTested.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.CreatesDiagnosticsIfExceptionOutcomesInheritedFromBaseClassesAreNotTested.ClassUnderTest"}
+                        ";DoSomething_ThrowsExceptionOnEveryCall,Exception,DoSomething"}
                 }
             };
 
@@ -149,13 +119,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Properties = new Dictionary<string, string>()
                 {
                     { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.FixDataProperty,
-                        ";DoSomething_ThrowsExceptionIfTestIntIs0Object,Exception,DoSomething"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.TestClassFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.NormalizesExceptionDescriptions.Tests.ClassUnderTestUnitTests" },
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestNameProperty,
-                        "ClassUnderTest"},
-                    { JA1007DocumentedExceptionOutcomesMustHaveMatchingUnitTests.ClassUnderTestFullyQualifiedNameProperty,
-                        "JeremyTCD.DotNet.Analyzers.Tests.Sources.JA1007.NormalizesExceptionDescriptions.ClassUnderTest"}
+                        ";DoSomething_ThrowsExceptionIfTestIntIs0Object,Exception,DoSomething"}
                 }
             };
 

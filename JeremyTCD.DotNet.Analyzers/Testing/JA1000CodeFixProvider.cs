@@ -46,32 +46,29 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            TestClassContext testClassContext = await TestClassContextFactory.TryCreateAsync(document).ConfigureAwait(false);
 
             // Add using for moq if required
-            SyntaxHelper.TryInsertUsing(compilationUnit, "Moq", documentEditor);
+            SyntaxHelper.TryInsertUsing(testClassContext.CompilationUnit, "Moq", documentEditor);
 
             // Add mock repository if required
-            VariableDeclarationSyntax mockRepositoryVariableDeclaration = TestingHelper.GetMockRepositoryFieldDeclaration(compilationUnit, documentEditor.SemanticModel);
-            if (mockRepositoryVariableDeclaration == null)
+            if (testClassContext.MockRepositoryVariableDeclaration == null)
             {
-                FieldDeclarationSyntax mockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
-                ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-                documentEditor.InsertMembers(classDeclaration, 0, new[] { mockRepositoryFieldDeclaration });
-                mockRepositoryVariableDeclaration = mockRepositoryFieldDeclaration.Declaration;
+                FieldDeclarationSyntax newMockRepositoryFieldDeclaration = TestingHelper.CreateMockRepositoryFieldDeclaration(syntaxGenerator);
+                documentEditor.InsertMembers(testClassContext.ClassDeclaration, 0, new[] { newMockRepositoryFieldDeclaration });
             }
 
             // Replace local variable declaration statement (do this first since it relies on the diagnostic location)
-            LocalDeclarationStatementSyntax oldDummyVariableLocalDeclarationStatement = compilationUnit.
+            LocalDeclarationStatementSyntax oldDummyVariableLocalDeclarationStatement = testClassContext.
+                CompilationUnit.
                 FindNode(diagnostic.Location.SourceSpan).
                 FirstAncestorOrSelf<LocalDeclarationStatementSyntax>();
             LocalDeclarationStatementSyntax newDummyVariableLocalDeclarationStatement = CreateDummyVariableLocalDeclarationStatement(
                 syntaxGenerator,
                 diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty],
-                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty],
-                mockRepositoryVariableDeclaration.Variables.First().Identifier.ValueText);
+                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty]);
             documentEditor.ReplaceNode(oldDummyVariableLocalDeclarationStatement, newDummyVariableLocalDeclarationStatement);
 
             // Update references to local variable
@@ -93,9 +90,9 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         private static LocalDeclarationStatementSyntax CreateDummyVariableLocalDeclarationStatement(SyntaxGenerator syntaxGenerator, string variableName,
-            string interfaceName, string mockRepositoryVariableName)
+            string interfaceName)
         {
-            SyntaxNode invocationExpression = TestingHelper.CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, interfaceName, mockRepositoryVariableName);
+            SyntaxNode invocationExpression = TestingHelper.CreateMockRepositoryCreateInvocationExpression(syntaxGenerator, interfaceName);
             SyntaxNode interfaceIdentifier = syntaxGenerator.IdentifierName(interfaceName);
             SyntaxNode genericName = syntaxGenerator.GenericName("Mock", interfaceIdentifier);
 

@@ -38,29 +38,18 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Return if not in a test class
-            if (!TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext == null)
             {
                 return;
             }
 
-            // Find test methods
-            IEnumerable<MethodDeclarationSyntax> testMethodDeclarations = TestingHelper.
-                GetTestMethodDeclarations(compilationUnit, semanticModel);
-            if (testMethodDeclarations.Count() == 0)
-            {
-                return;
-            }
-
-            foreach(MethodDeclarationSyntax testMethodDeclaration in testMethodDeclarations)
+            foreach(MethodDeclarationSyntax testMethodDeclaration in testClassContext.TestMethodDeclarations)
             {
                 IEnumerable <IMethodSymbol> invokedMethods = testMethodDeclaration.
                     DescendantNodes().
                     OfType<InvocationExpressionSyntax>().
-                    Select(i => semanticModel.GetSymbolInfo(i).Symbol as IMethodSymbol);
+                    Select(i => testClassContext.SemanticModel.GetSymbolInfo(i).Symbol as IMethodSymbol);
 
                 if(invokedMethods.Any(i => TestingHelper.IsMockSetupMethod(i)) &&
                     !invokedMethods.Any(i => TestingHelper.IsMockRepositoryVerifyAllMethod(i)))
