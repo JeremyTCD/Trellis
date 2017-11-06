@@ -77,17 +77,16 @@ namespace JeremyTCD.DotNet.Analyzers
                 ITypeSymbol typeSymbol = context.SemanticModel.GetTypeInfo(initializer.Value).Type;
                 if (typeSymbol == null || 
                     typeSymbol == testClassContext.ClassUnderTest || 
+                    typeSymbol.ContainingNamespace == testClassContext.ClassSymbol.ContainingNamespace ||
                     typeSymbol.ToDisplayString().StartsWith("System.") ||
-                    typeSymbol.OriginalDefinition?.ToDisplayString() == "Moq.Mock<T>" ||
+                    typeSymbol.OriginalDefinition.ToDisplayString() == "Moq.Mock<T>" ||
+                    typeSymbol.Interfaces.Count() == 0 ||
                     typeSymbol.AllInterfaces.Any(i => i.ToDisplayString().StartsWith("System.")))
                 {
                     continue;
                 }
 
-                INamedTypeSymbol interfaceSymbol = typeSymbol.
-                    AllInterfaces.
-                    FirstOrDefault(i => !i.ToDisplayString().StartsWith("System."));
-
+                INamedTypeSymbol interfaceSymbol = typeSymbol.Interfaces.FirstOrDefault();
                 if (interfaceSymbol != null)
                 {
                     ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
