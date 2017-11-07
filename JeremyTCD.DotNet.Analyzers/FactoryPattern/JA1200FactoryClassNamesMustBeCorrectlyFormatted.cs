@@ -38,31 +38,28 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
+            //FactoryClassContext factoryClassContext = FactoryClassContextFactory.TryCreate(context);
+            //if (factoryClassContext == null || factoryClassContext.ProducedClass != null)
+            //{
+            //    return;
+            //}
 
-            // Get class declaration
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if(classDeclaration == null)
-            {
-                return;
-            }
+            // TODO
+            // get expected type returned from factory name
+            // get create methods from itnerface
+            // get implementations of create methods
+            // get type that they return
+            // check type returned against expected type returned
 
-            // Return if not a factory class
-            if (!FactoryHelper.IsFactoryType(classDeclaration))
-            {
-                return;
-            }
+            //// Get type that factory creates
+            //ITypeSymbol producedType = FactoryHelper.GetProducedInterface(classDeclaration, context.Compilation.GlobalNamespace);
+            //if(producedType != null)
+            //{
+            //    return;
+            //}
 
-            // Get type that factory creates
-            ITypeSymbol producedType = FactoryHelper.GetProducedType(classDeclaration, context.Compilation.GlobalNamespace);
-            if(producedType != null)
-            {
-                return;
-            }
-
-            // Add diagnostic
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
+            //// Add diagnostic
+            //context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
         }
     }
 }

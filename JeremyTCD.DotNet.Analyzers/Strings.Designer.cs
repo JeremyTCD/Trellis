@@ -504,5 +504,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1202_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory class does not implement a factory interface..
+        /// </summary>
+        public static string JA1203_Description {
+            get {
+                return ResourceManager.GetString("JA1203_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory class must implement a factory interface..
+        /// </summary>
+        public static string JA1203_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1203_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory class must implement factory interface..
+        /// </summary>
+        public static string JA1203_Title {
+            get {
+                return ResourceManager.GetString("JA1203_Title", resourceCulture);
+            }
+        }
     }
 }

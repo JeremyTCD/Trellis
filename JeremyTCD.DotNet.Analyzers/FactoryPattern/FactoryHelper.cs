@@ -13,9 +13,19 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class FactoryHelper
     {
+        public static bool IsFactoryType(INamedTypeSymbol type)
+        {
+            return IsFactoryType(type.Name);
+        }
+
         public static bool IsFactoryType(TypeDeclarationSyntax typeDeclaration)
         {
-            return typeDeclaration.Identifier.ValueText.EndsWith("Factory");
+            return IsFactoryType(typeDeclaration.Identifier.ValueText);
+        }
+
+        public static bool IsFactoryType(string typeName)
+        {
+            return typeName.EndsWith("Factory");
         }
 
         public static IEnumerable<MethodDeclarationSyntax> GetCreateMethods(ClassDeclarationSyntax classDeclaration)

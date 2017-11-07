@@ -267,4 +267,13 @@
   <data name="JA1202_Title" xml:space="preserve">
     <value>Factory interface must have at least one valid create method.</value>
   </data>
+  <data name="JA1203_Description" xml:space="preserve">
+    <value>Factory class does not implement a factory interface.</value>
+  </data>
+  <data name="JA1203_MessageFormat" xml:space="preserve">
+    <value>Factory class must implement a factory interface.</value>
+  </data>
+  <data name="JA1203_Title" xml:space="preserve">
+    <value>Factory class must implement factory interface.</value>
+  </data>
 </root>
