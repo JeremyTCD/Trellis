@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -51,7 +50,8 @@ namespace JeremyTCD.DotNet.Analyzers
                 if (methodUnderTest == null)
                 {
                     // Check if test method name starts with the name of any method in the test class
-                    if (testClassContext.ClassUnderTestMethods.
+                    if (testClassContext.
+                        ClassUnderTestMethods.
                         Any(m => testMethodDeclaration.Identifier.ValueText.StartsWith($"{m.Name}_")))
                     {
                         continue;
