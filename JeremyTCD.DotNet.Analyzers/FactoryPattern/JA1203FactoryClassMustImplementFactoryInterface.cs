@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -37,7 +36,7 @@ namespace JeremyTCD.DotNet.Analyzers
         private void Handle(SyntaxNodeAnalysisContext context)
         {
             FactoryClassContext factoryClassContext = FactoryClassContextFactory.TryCreate(context);
-            if (factoryClassContext == null || factoryClassContext.FactoryInterface != null)
+            if (factoryClassContext == null || factoryClassContext.FactoryInterfaceContext != null)
             {
                 return;
             }
