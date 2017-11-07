@@ -318,7 +318,13 @@ namespace JeremyTCD.DotNet.Analyzers
         {
             get
             {
-                return _classSymbolGetAttempted ? _classSymbol : (_classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol);
+                if (_classSymbolGetAttempted)
+                {
+                    _classSymbolGetAttempted = true;
+                    return _classSymbol;
+                }
+
+                return _classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol;
             }
         }
 
