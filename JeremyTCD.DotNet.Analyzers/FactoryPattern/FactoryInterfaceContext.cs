@@ -89,12 +89,18 @@ namespace JeremyTCD.DotNet.Analyzers
 
         public FactoryInterfaceContext(SemanticModel semanticModel,
             CompilationUnitSyntax compilationUnit,
-            InterfaceDeclarationSyntax interfaceDeclaration)
+            InterfaceDeclarationSyntax interfaceDeclaration,
+            INamedTypeSymbol interfaceSymbol = null)
         {
             SemanticModel = semanticModel;
             CompilationUnit = compilationUnit;
             InterfaceDeclaration = interfaceDeclaration;
             Compilation = semanticModel.Compilation;
+            if(interfaceSymbol != null)
+            {
+                _interfaceSymbol = interfaceSymbol;
+                _interfaceSymbolGetAttempted = true;
+            }
         }
 
         public IEnumerable<T> GetDescendantNodes<T>() where T : SyntaxNode

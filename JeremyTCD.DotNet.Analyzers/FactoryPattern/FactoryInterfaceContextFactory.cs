@@ -24,9 +24,27 @@ namespace JeremyTCD.DotNet.Analyzers
             return TryCreate(context.SemanticModel, compilationUnit);
         }
 
-        public static FactoryInterfaceContext TryCreate(SemanticModel semanticModel, CompilationUnitSyntax compilationUnit)
+        public static FactoryInterfaceContext TryCreate(SemanticModel semanticModel, INamedTypeSymbol interfaceSymbol)
         {
-            InterfaceDeclarationSyntax interfaceDeclaration = compilationUnit.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault();
+            CompilationUnitSyntax compilationUnit = interfaceSymbol.
+                DeclaringSyntaxReferences.
+                FirstOrDefault()?.
+                GetSyntax().
+                SyntaxTree.
+                GetRoot() as CompilationUnitSyntax;
+            if (compilationUnit == null)
+            {
+                return null;
+            }
+
+            return TryCreate(semanticModel, compilationUnit, interfaceSymbol);
+        }
+
+        public static FactoryInterfaceContext TryCreate(SemanticModel semanticModel, CompilationUnitSyntax compilationUnit, INamedTypeSymbol interfaceSymbol = null)
+        {
+            InterfaceDeclarationSyntax interfaceDeclaration = interfaceSymbol == null ?
+                compilationUnit.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault() :
+                interfaceSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as InterfaceDeclarationSyntax;
             if (interfaceDeclaration == null)
             {
                 return null;
@@ -37,7 +55,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 return null;
             }
 
-            return new FactoryInterfaceContext(semanticModel, compilationUnit, interfaceDeclaration);
+            return new FactoryInterfaceContext(semanticModel, compilationUnit, interfaceDeclaration, interfaceSymbol);
         }
     }
 }
