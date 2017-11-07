@@ -3,11 +3,8 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -38,28 +35,24 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            //FactoryClassContext factoryClassContext = FactoryClassContextFactory.TryCreate(context);
-            //if (factoryClassContext == null || factoryClassContext.ProducedClass != null)
-            //{
-            //    return;
-            //}
+            FactoryClassContext factoryClassContext = FactoryClassContextFactory.TryCreate(context);
+            // Impossible to verify validity of factory class name
+            if (factoryClassContext == null || 
+                factoryClassContext.FactoryInterfaceContext == null ||
+                factoryClassContext.FactoryInterfaceContext.ProducedInterface == null)
+            {
+                return;
+            }
 
-            // TODO
-            // get expected type returned from factory name
-            // get create methods from itnerface
-            // get implementations of create methods
-            // get type that they return
-            // check type returned against expected type returned
+            // Factory class name is valid
+            if(factoryClassContext.ProducedClass != null && 
+               factoryClassContext.ProducedClass.AllInterfaces.Contains(factoryClassContext.FactoryInterfaceContext.ProducedInterface))
+            {
+                return;
+            }
 
-            //// Get type that factory creates
-            //ITypeSymbol producedType = FactoryHelper.GetProducedInterface(classDeclaration, context.Compilation.GlobalNamespace);
-            //if(producedType != null)
-            //{
-            //    return;
-            //}
-
-            //// Add diagnostic
-            //context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
+            // Produced class does not exist or produced class does not implement factory interface's produced interface
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, factoryClassContext.ClassDeclaration.Identifier.GetLocation()));
         }
     }
 }

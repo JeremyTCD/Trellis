@@ -434,7 +434,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Factory class name is not in format &quot;&lt;ProducedType&gt;Factory&quot;..
+        ///   Looks up a localized string similar to Factory class name is not in format &quot;&lt;ProducedType&gt;Factory&quot; where &lt;ProducedType&gt; implements the interface that the factory produces..
         /// </summary>
         public static string JA1200_MessageFormat {
             get {
