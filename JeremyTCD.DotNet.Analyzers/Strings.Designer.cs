@@ -531,5 +531,32 @@ namespace JeremyTCD.DotNet.Analyzers {
                 return ResourceManager.GetString("JA1203_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A factory class ceate method does not return produced class..
+        /// </summary>
+        public static string JA1204_Description {
+            get {
+                return ResourceManager.GetString("JA1204_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create method must return produced class..
+        /// </summary>
+        public static string JA1204_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1204_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Factory class create methods must return produced class..
+        /// </summary>
+        public static string JA1204_Title {
+            get {
+                return ResourceManager.GetString("JA1204_Title", resourceCulture);
+            }
+        }
     }
 }

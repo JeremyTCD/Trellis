@@ -23,15 +23,6 @@ namespace JeremyTCD.DotNet.Analyzers
             return typeName.EndsWith("Factory");
         }
 
-
-        public static IEnumerable<MethodDeclarationSyntax> GetCreateMethods(ClassDeclarationSyntax classDeclaration)
-        {
-            return classDeclaration.
-                DescendantNodes().
-                OfType<MethodDeclarationSyntax>().
-                Where(m => m.Identifier.ValueText == "Create");
-        }
-
         public static ITypeSymbol GetProducedClass(ClassDeclarationSyntax factoryClassDeclaration, INamespaceSymbol globalNamespace)
         {
             string factoryClassName = factoryClassDeclaration.Identifier.ValueText;

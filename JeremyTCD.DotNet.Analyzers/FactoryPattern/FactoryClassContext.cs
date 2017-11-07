@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
@@ -35,6 +36,38 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
 
                 return _producedClass;
+            }
+        }
+
+        private IEnumerable<IMethodSymbol> _createMethods;
+        public IEnumerable<IMethodSymbol> CreateMethods
+        {
+            get
+            {
+                if (_createMethods != null)
+                {
+                    return _createMethods;
+                }
+
+                return _createMethods = FactoryInterfaceContext.
+                    CreateMethods.
+                    Select(m => ClassSymbol.FindImplementationForInterfaceMember(m) as IMethodSymbol);
+            }
+        }
+
+        private IEnumerable<MethodDeclarationSyntax> _createMethodDeclarations;
+        public IEnumerable<MethodDeclarationSyntax> CreateMethodDeclarations
+        {
+            get
+            {
+                if(_createMethodDeclarations != null)
+                {
+                    return _createMethodDeclarations;
+                }
+
+                return _createMethodDeclarations = CreateMethods.
+                    Select(m => m.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax() as MethodDeclarationSyntax).
+                    Where(m => m != null);
             }
         }
 
