@@ -13,11 +13,6 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class FactoryHelper
     {
-        public static bool IsFactoryType(INamedTypeSymbol type)
-        {
-            return IsFactoryType(type.Name);
-        }
-
         public static bool IsFactoryType(TypeDeclarationSyntax typeDeclaration)
         {
             return IsFactoryType(typeDeclaration.Identifier.ValueText);
@@ -28,6 +23,7 @@ namespace JeremyTCD.DotNet.Analyzers
             return typeName.EndsWith("Factory");
         }
 
+
         public static IEnumerable<MethodDeclarationSyntax> GetCreateMethods(ClassDeclarationSyntax classDeclaration)
         {
             return classDeclaration.
@@ -36,9 +32,39 @@ namespace JeremyTCD.DotNet.Analyzers
                 Where(m => m.Identifier.ValueText == "Create");
         }
 
-        public static ITypeSymbol GetProducedInterface(InterfaceDeclarationSyntax interfaceDeclaration, INamespaceSymbol globalNamespace)
+        public static ITypeSymbol GetProducedClass(ClassDeclarationSyntax factoryClassDeclaration, INamespaceSymbol globalNamespace)
         {
-            string factoryName = interfaceDeclaration.Identifier.ValueText;
+            string factoryClassName = factoryClassDeclaration.Identifier.ValueText;
+            int lastIndexOfFactory = factoryClassName.LastIndexOf("Factory");
+            string producedClassName = factoryClassName.Substring(0, lastIndexOfFactory == -1 ? factoryClassName.Length : lastIndexOfFactory);
+
+            if (factoryClassName == producedClassName)
+            {
+                return null;
+            }
+
+            IEnumerable<ITypeSymbol> types = SymbolHelper.GetTypeSymbols(producedClassName, globalNamespace);
+
+            // More than one types with the same name (from different namespaces)
+            if (types.Count() > 1)
+            {
+                string classNamespaceName = factoryClassDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
+
+                foreach (ITypeSymbol type in types)
+                {
+                    if (classNamespaceName.Equals(type.ContainingNamespace.ToString()))
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            return types.FirstOrDefault();
+        }
+
+        public static ITypeSymbol GetProducedInterface(InterfaceDeclarationSyntax factoryInterfaceDeclaration, INamespaceSymbol globalNamespace)
+        {
+            string factoryName = factoryInterfaceDeclaration.Identifier.ValueText;
             int lastIndexOfFactory = factoryName.LastIndexOf("Factory");
             string producedInterfaceName = factoryName.Substring(0, lastIndexOfFactory == -1 ? factoryName.Length : lastIndexOfFactory);
 
@@ -57,7 +83,7 @@ namespace JeremyTCD.DotNet.Analyzers
             }
 
             // More than one types with the same name (from different namespaces)
-            string factoryInterfaceNamespaceName = interfaceDeclaration.
+            string factoryInterfaceNamespaceName = factoryInterfaceDeclaration.
                 FirstAncestorOrSelf<NamespaceDeclarationSyntax>().
                 Name.
                 ToString();
