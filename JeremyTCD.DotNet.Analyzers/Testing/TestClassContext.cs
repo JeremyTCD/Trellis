@@ -313,11 +313,12 @@ namespace JeremyTCD.DotNet.Analyzers
         }
 
         private INamedTypeSymbol _classSymbol;
+        private bool _classSymbolGetAttempted;
         public INamedTypeSymbol ClassSymbol
         {
             get
             {
-                return _classSymbol ?? (_classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol);
+                return _classSymbolGetAttempted ? _classSymbol : (_classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol);
             }
         }
 
@@ -334,11 +335,6 @@ namespace JeremyTCD.DotNet.Analyzers
             CompilationUnit = compilationUnit;
             ClassDeclaration = classDeclaration;
             Compilation = semanticModel.Compilation;
-        }
-
-        public TestClassContext(Document document, CancellationToken cancellationToken)
-        {
-            CompilationUnit = document.GetSyntaxRootAsync(cancellationToken).Result as CompilationUnitSyntax;
         }
 
         public IEnumerable<T> GetDescendantNodes<T>() where T : SyntaxNode
