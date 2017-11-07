@@ -38,44 +38,20 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Get class declaration
-            InterfaceDeclarationSyntax interfaceDeclaration = compilationUnit.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault();
-            if (interfaceDeclaration == null)
+            FactoryInterfaceContext factoryInterfaceContext = FactoryInterfaceContextFactory.TryCreate(context);
+            if (factoryInterfaceContext == null || factoryInterfaceContext.ProducedInterface == null)
             {
                 return;
             }
 
-            // Return if not a factory interface
-            if (!FactoryHelper.IsFactoryType(interfaceDeclaration))
-            {
-                return;
-            }
-
-            // Get type that factory creates
-            ITypeSymbol producedType = FactoryHelper.GetProducedType(interfaceDeclaration, context.Compilation.GlobalNamespace);
-            if (producedType == null || producedType.TypeKind != TypeKind.Interface)
-            {
-                return;
-            }
-
-            // Get all methods named Create
-            IEnumerable<MethodDeclarationSyntax> interfaceMethodDeclarations = interfaceDeclaration.
-                DescendantNodes().
-                OfType<MethodDeclarationSyntax>().
-                Where(m => m.Identifier.ValueText == "Create");
-
-            // Check if any return the produced type
-            if (interfaceMethodDeclarations.Count() > 0 &&
-                semanticModel.GetSymbolInfo(interfaceMethodDeclarations.ToArray()[0].ReturnType).Symbol == producedType)
+            // Check if any create methods exist
+            if (factoryInterfaceContext.CreateMethods.Count() > 0)
             {
                 return;
             }
 
             // Add diagnostic
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, interfaceDeclaration.Identifier.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, factoryInterfaceContext.InterfaceDeclaration.Identifier.GetLocation()));
         }
     }
 }

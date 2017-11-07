@@ -47,35 +47,22 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            SemanticModel semanticModel = documentEditor.SemanticModel;
-
-            // Get interface declaration
-            InterfaceDeclarationSyntax interfaceDeclaration = compilationUnit.DescendantNodes().OfType<InterfaceDeclarationSyntax>().First();
-
-            // Get factory interface
-            ITypeSymbol factoryInterface = semanticModel.GetDeclaredSymbol(interfaceDeclaration) as ITypeSymbol;
-
-            // Get produced interface
-            ITypeSymbol producedInterface = FactoryHelper.GetProducedType(interfaceDeclaration, semanticModel.Compilation.GlobalNamespace);
-
-            // Get produced interface declaration
-            InterfaceDeclarationSyntax producedInterfaceDeclaration = producedInterface.DeclaringSyntaxReferences.First().GetSyntax() as InterfaceDeclarationSyntax;
+            FactoryInterfaceContext factoryInterfaceContext = await FactoryInterfaceContextFactory.
+                TryCreateAsync(document).ConfigureAwait(false);
 
             // Check if interface has any methods that return produced interface, if it does, rename them to create
-            IEnumerable<IMethodSymbol> methodsThatReturnProducedInterface = factoryInterface.
-                GetMembers().
-                OfType<IMethodSymbol>().
-                Where(m => m.ReturnType == producedInterface);
+            IEnumerable<IMethodSymbol> methodsThatReturnProducedInterface = factoryInterfaceContext.
+                Methods.
+                Where(m => m.ReturnType == factoryInterfaceContext.ProducedInterface);
 
             if (methodsThatReturnProducedInterface.Count() > 0)
             {
                 foreach (IMethodSymbol method in methodsThatReturnProducedInterface)
                 {
                     MethodDeclarationSyntax methodDeclaration = method.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax;
-                    // TODO methods with the same arguments
+                    // TODO methods that initially have different names but the same arguments
                     documentEditor.ReplaceNode(methodDeclaration, methodDeclaration.WithIdentifier(SyntaxFactory.Identifier("Create")));
                 }
             }
@@ -85,11 +72,11 @@ namespace JeremyTCD.DotNet.Analyzers
 
                 // Create method declaration
                 MethodDeclarationSyntax createMethodDeclaration = FactoryHelper.
-                    CreateCreateMethodDeclaration(producedInterfaceDeclaration, syntaxGenerator).
+                    CreateCreateMethodDeclaration(factoryInterfaceContext.ProducedInterfaceDeclaration, syntaxGenerator).
                     WithLeadingTrivia(indentationTrivia, indentationTrivia);
 
                 // If no methods that return produced interface, create a new create method
-                documentEditor.AddMember(interfaceDeclaration, createMethodDeclaration);
+                documentEditor.AddMember(factoryInterfaceContext.InterfaceDeclaration, createMethodDeclaration);
             }
 
             return documentEditor.GetChangedDocument();

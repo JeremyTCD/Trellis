@@ -3,11 +3,8 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -38,31 +35,15 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Get class declaration
-            InterfaceDeclarationSyntax interfaceDeclaration = compilationUnit.DescendantNodes().OfType<InterfaceDeclarationSyntax>().FirstOrDefault();
-            if(interfaceDeclaration == null)
-            {
-                return;
-            }
-
-            // Return if not a factory interface
-            if (!FactoryHelper.IsFactoryType(interfaceDeclaration))
-            {
-                return;
-            }
-
-            // Get type that factory creates
-            ITypeSymbol producedType = FactoryHelper.GetProducedType(interfaceDeclaration, context.Compilation.GlobalNamespace);
-            if(producedType != null && producedType.TypeKind == TypeKind.Interface)
+            FactoryInterfaceContext factoryInterfaceContext = FactoryInterfaceContextFactory.TryCreate(context);
+            if (factoryInterfaceContext == null || factoryInterfaceContext.ProducedInterface != null)
             {
                 return;
             }
 
             // Add diagnostic
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, interfaceDeclaration.Identifier.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, 
+                factoryInterfaceContext.InterfaceDeclaration.Identifier.GetLocation()));
         }
     }
 }

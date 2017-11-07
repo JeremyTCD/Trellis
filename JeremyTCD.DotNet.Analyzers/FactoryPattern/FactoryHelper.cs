@@ -26,22 +26,37 @@ namespace JeremyTCD.DotNet.Analyzers
                 Where(m => m.Identifier.ValueText == "Create");
         }
 
-        public static ITypeSymbol GetProducedType(TypeDeclarationSyntax typeDeclaration, INamespaceSymbol globalNamespace)
+        public static ITypeSymbol GetProducedInterface(InterfaceDeclarationSyntax interfaceDeclaration, INamespaceSymbol globalNamespace)
         {
-            string factoryName = typeDeclaration.Identifier.ValueText;
+            string factoryName = interfaceDeclaration.Identifier.ValueText;
             int lastIndexOfFactory = factoryName.LastIndexOf("Factory");
-            string producedTypeName = factoryName.Substring(0, lastIndexOfFactory == -1 ? factoryName.Length : lastIndexOfFactory);
+            string producedInterfaceName = factoryName.Substring(0, lastIndexOfFactory == -1 ? factoryName.Length : lastIndexOfFactory);
 
-            IEnumerable<ITypeSymbol> types = SymbolHelper.GetTypeSymbols(producedTypeName, globalNamespace);
+            IEnumerable<ITypeSymbol> interfaceTypes = SymbolHelper.
+                GetTypeSymbols(producedInterfaceName, globalNamespace).
+                Where(t => t.TypeKind == TypeKind.Interface);
+            int numInterfaceTypes = interfaceTypes.Count();
+
+            if(numInterfaceTypes == 1)
+            {
+                return interfaceTypes.First();
+            }
+            if(numInterfaceTypes == 0)
+            {
+                return null;
+            }
 
             // More than one types with the same name (from different namespaces)
-            string producedTypeNamespaceName = typeDeclaration.FirstAncestorOrSelf<NamespaceDeclarationSyntax>().Name.ToString();
+            string factoryInterfaceNamespaceName = interfaceDeclaration.
+                FirstAncestorOrSelf<NamespaceDeclarationSyntax>().
+                Name.
+                ToString();
 
-            foreach (ITypeSymbol type in types)
+            foreach (ITypeSymbol interfaceType in interfaceTypes)
             {
-                if (producedTypeNamespaceName.Equals(type.ContainingNamespace.ToString(), StringComparison.OrdinalIgnoreCase))
+                if (factoryInterfaceNamespaceName.Equals(interfaceType.ContainingNamespace.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    return type;
+                    return interfaceType;
                 }
             }
 
