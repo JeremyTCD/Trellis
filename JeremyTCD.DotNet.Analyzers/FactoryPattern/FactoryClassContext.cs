@@ -12,47 +12,53 @@ namespace JeremyTCD.DotNet.Analyzers
         {
             get
             {
-                return _classSymbolGetAttempted ? _classSymbol : (_classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol);
+                if (_classSymbolGetAttempted)
+                {
+                    return _classSymbol;
+                }
+
+                _classSymbolGetAttempted = true;
+                return _classSymbol = SemanticModel.GetDeclaredSymbol(ClassDeclaration) as INamedTypeSymbol;
             }
         }
 
-        private INamedTypeSymbol _factoryInterface;
-        private bool _factoryInterfaceGetAttempted;
-        public INamedTypeSymbol FactoryInterface
+        private INamedTypeSymbol _producedClass;
+        private bool _producedClassGetAttempted;
+        public INamedTypeSymbol ProducedClass
         {
             get
             {
-                if(ClassSymbol == null)
+                if (!_producedClassGetAttempted)
+                {
+                    _producedClassGetAttempted = true;
+                    return _producedClass = FactoryHelper.GetProducedClass(ClassDeclaration, Compilation.GlobalNamespace) as INamedTypeSymbol;
+                }
+
+                return _producedClass;
+            }
+        }
+
+        private FactoryInterfaceContext _factoryInterfaceContext;
+        private bool _factoryInterfaceContextGetAttempted;
+        public FactoryInterfaceContext FactoryInterfaceContext
+        {
+            get
+            {
+                if (_factoryInterfaceContextGetAttempted)
+                {
+                    return _factoryInterfaceContext;
+                }
+
+                _factoryInterfaceContextGetAttempted = true;
+                INamedTypeSymbol factoryInterface = ClassSymbol.Interfaces.Where(i => FactoryHelper.IsFactoryType(i.Name)).FirstOrDefault();
+                if(factoryInterface == null)
                 {
                     return null;
                 }
 
-                return _factoryInterfaceGetAttempted ? 
-                    _factoryInterface : (_factoryInterface = ClassSymbol.Interfaces.Where(i => FactoryHelper.IsFactoryType(i)).FirstOrDefault());
+                return  _factoryInterfaceContext = FactoryInterfaceContextFactory.TryCreate(SemanticModel, factoryInterface);
             }
         }
-
-        //private INamedTypeSymbol _producedInterface;
-        //private bool _producedInterfaceGetAttempted;
-        //public INamedTypeSymbol ProducedInterface
-        //{
-        //    get
-        //    {
-        //        return _producedInterfaceGetAttempted ? _producedInterface :
-        //            (_producedInterface = FactoryHelper.GetProducedInterface(ClassDeclaration, Compilation.GlobalNamespace) as INamedTypeSymbol);
-        //    }
-        //}
-
-        //private INamedTypeSymbol _factoryInterface;
-        //private bool _factoryInterfaceGetAttempted;
-        //public INamedTypeSymbol FactoryInterface
-        //{
-        //    get
-        //    {
-        //        return _factoryInterfaceGetAttempted ? _factoryInterface :
-        //            (_factoryInterface = FactoryHelper.GetFactoryInterface());
-        //    }
-        //}
 
         public CompilationUnitSyntax CompilationUnit { get; }
         public Compilation Compilation { get; }
