@@ -10,13 +10,19 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class TestingHelper
     {
-        public static IEnumerable<LocalDeclarationStatementSyntax> GetResultVariableDeclarations(MethodDeclarationSyntax testMethod,
-            List<LocalDeclarationStatementSyntax> testSubjectDeclarations)
+        public static IEnumerable<LocalDeclarationStatementSyntax> GetResultVariableDeclarations(MethodDeclarationSyntax testMethodDeclaration,
+            TestClassContext testClassContext,
+            IEnumerable<LocalDeclarationStatementSyntax> testSubjectDeclarations = null)
         {
+            if(testSubjectDeclarations == null)
+            {
+                testSubjectDeclarations = GetTestSubjectDeclarations(testClassContext, testMethodDeclaration);
+            }
+
             IEnumerable<string> testSubjectVariableNames = testSubjectDeclarations.
                 Select(t => t.Declaration.Variables.First().Identifier.ValueText);
 
-            return testMethod.
+            return testMethodDeclaration.
                 DescendantNodes().
                 OfType<LocalDeclarationStatementSyntax>().
                 Where(l =>

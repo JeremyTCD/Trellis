@@ -56,7 +56,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 }
 
                 IEnumerable<LocalDeclarationStatementSyntax> resultDeclarations = TestingHelper.
-                    GetResultVariableDeclarations(methodDeclaration, testSubjectDeclarations);
+                    GetResultVariableDeclarations(methodDeclaration, testClassContext, testSubjectDeclarations);
 
                 if (resultDeclarations.Count() == 1)
                 {
