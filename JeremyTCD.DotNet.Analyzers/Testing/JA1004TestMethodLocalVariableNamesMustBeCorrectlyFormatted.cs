@@ -88,10 +88,9 @@ namespace JeremyTCD.DotNet.Analyzers
                         }
 
                     }
-                    else // TODO Not class under test or a mock
+                    else
                     {
-                        // Must not be "testSubject"
-                        // Must not start with "mock"
+                        // TODO must not start with mock
                         continue;
                     }
 
