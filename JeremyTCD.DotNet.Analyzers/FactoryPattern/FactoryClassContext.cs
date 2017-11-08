@@ -7,6 +7,15 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public class FactoryClassContext
     {
+        private string _className;
+        public string ClassName
+        {
+            get
+            {
+                return _className ?? (_className = ClassDeclaration.Identifier.ValueText);
+            }
+        }
+
         private INamedTypeSymbol _classSymbol;
         private bool _classSymbolGetAttempted;
         public INamedTypeSymbol ClassSymbol
@@ -60,7 +69,7 @@ namespace JeremyTCD.DotNet.Analyzers
         {
             get
             {
-                if(_createMethodDeclarations != null)
+                if (_createMethodDeclarations != null)
                 {
                     return _createMethodDeclarations;
                 }
@@ -84,12 +93,12 @@ namespace JeremyTCD.DotNet.Analyzers
 
                 _factoryInterfaceContextGetAttempted = true;
                 INamedTypeSymbol factoryInterface = ClassSymbol.Interfaces.Where(i => FactoryHelper.IsFactoryType(i.Name)).FirstOrDefault();
-                if(factoryInterface == null)
+                if (factoryInterface == null)
                 {
                     return null;
                 }
 
-                return  _factoryInterfaceContext = FactoryInterfaceContextFactory.TryCreate(SemanticModel, factoryInterface);
+                return _factoryInterfaceContext = FactoryInterfaceContextFactory.TryCreate(SemanticModel, factoryInterface);
             }
         }
 

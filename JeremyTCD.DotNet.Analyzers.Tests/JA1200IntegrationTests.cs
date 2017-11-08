@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 using Xunit;
 
 namespace JeremyTCD.DotNet.Analyzers.Tests
@@ -7,6 +8,24 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
     {
         private readonly SourcesHelper _sourcesHelper = new SourcesHelper(JA1200FactoryClassNamesMustBeCorrectlyFormatted.DiagnosticId);
         private readonly DiagnosticVerifier _diagnosticVerifier = new DiagnosticVerifier(new JA1200FactoryClassNamesMustBeCorrectlyFormatted());
+
+        [Fact]
+        public void DiagnosticAnalyzer_CreatesDiagnosticIfFactoryClassNameIsIncorrectlyFormatted()
+        {
+            DiagnosticResult expected = new DiagnosticResult
+            {
+                Id = JA1200FactoryClassNamesMustBeCorrectlyFormatted.DiagnosticId,
+                Message = Strings.JA1200_MessageFormat,
+                Severity = DiagnosticSeverity.Warning,
+                Locations = new[] { new DiagnosticResultLocation("ProducedClassFactory.cs", 3, 18) },
+                Properties = new Dictionary<string, string>()
+                {
+                    { JA1200FactoryClassNamesMustBeCorrectlyFormatted.ExpectedClassNameProperty, "ProducedClassFactory" }
+                }
+            };
+
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
+        }
 
         [Fact]
         public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfCompilationDoesNotContainAFactoryClass()
@@ -21,7 +40,25 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassHasNoCreateMethodThatProducesConcreteTypes()
+        {
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassHasCreateMethodsThatProduceInterfaces()
+        {
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
         public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassNameIsCorrectlyFormatted()
+        {
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassHasACreateMethodThatProducesMultipleConcreteTypes()
         {
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
         }
@@ -33,32 +70,9 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
-        public void DiagnosticAnalyzer_CreatesDiagnosticIfProducedClassDoesNotExist()
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassHasCreateMethodsThatProduceDifferentConcreteTypes()
         {
-            DiagnosticResult expected = new DiagnosticResult
-            {
-                Id = JA1200FactoryClassNamesMustBeCorrectlyFormatted.DiagnosticId,
-                Message = Strings.JA1200_MessageFormat,
-                Severity = DiagnosticSeverity.Warning,
-                Locations = new[] { new DiagnosticResultLocation("NonExistentClassFactory.cs", 3, 18) }
-            };
-
-            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
         }
-
-        [Fact]
-        public void DiagnosticAnalyzer_CreatesDiagnosticIfProducedClassDoesNotImplementProducedInterface()
-        {
-            DiagnosticResult expected = new DiagnosticResult
-            {
-                Id = JA1200FactoryClassNamesMustBeCorrectlyFormatted.DiagnosticId,
-                Message = Strings.JA1200_MessageFormat,
-                Severity = DiagnosticSeverity.Warning,
-                Locations = new[] { new DiagnosticResultLocation("ProducedClassFactory.cs", 3, 18) }
-            };
-
-            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
-        }
-
     }
 }
