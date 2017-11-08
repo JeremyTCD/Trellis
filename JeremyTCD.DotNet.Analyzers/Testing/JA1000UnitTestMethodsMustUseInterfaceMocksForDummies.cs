@@ -58,54 +58,56 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            foreach (VariableDeclaratorSyntax variableDeclarator in testClassContext.
-                TestMethodDeclarations.
-                SelectMany(m => m.DescendantNodes().
-                    OfType<LocalDeclarationStatementSyntax>().
-                    SelectMany(l => l.Declaration.Variables))
-                )
+            foreach(MethodDeclarationSyntax testMethodDeclaration in testClassContext.TestMethodDeclarations)
             {
-                EqualsValueClauseSyntax initializer = variableDeclarator.Initializer;
-                if (initializer == null)
-                {
-                    continue;
-                }
+                IEnumerable<LocalDeclarationStatementSyntax> testSubjectDeclarations = TestingHelper.GetTestSubjectDeclarations(testClassContext, testMethodDeclaration);
+                IEnumerable<LocalDeclarationStatementSyntax> resultDeclarations = TestingHelper.GetResultVariableDeclarations(testMethodDeclaration, testClassContext, testSubjectDeclarations);
 
-                // Do not create diagnostic for class under test declarations
-                // Do not create diagnostic for types that implement corelib interfaces, many have extension methods that can't be mocked and most
-                // are implemented in a fairly stable manner (e.g collection<T>s)
-                ITypeSymbol typeSymbol = context.SemanticModel.GetTypeInfo(initializer.Value).Type;
-                if (typeSymbol == null || 
-                    typeSymbol == testClassContext.ClassUnderTest || 
-                    typeSymbol.ContainingNamespace == testClassContext.ClassSymbol.ContainingNamespace ||
-                    typeSymbol.ToDisplayString().StartsWith("System.") ||
-                    typeSymbol.OriginalDefinition.ToDisplayString() == "Moq.Mock<T>" ||
-                    typeSymbol.Interfaces.Count() == 0 ||
-                    typeSymbol.AllInterfaces.Any(i => i.ToDisplayString().StartsWith("System.")))
+                foreach(VariableDeclaratorSyntax variableDeclarator in testMethodDeclaration.
+                    DescendantNodes().
+                    OfType<LocalDeclarationStatementSyntax>().
+                    Except(resultDeclarations.Concat(testSubjectDeclarations)).
+                    SelectMany(l => l.Declaration.Variables))
                 {
-                    continue;
-                }
-
-                INamedTypeSymbol interfaceSymbol = typeSymbol.Interfaces.FirstOrDefault();
-                if (interfaceSymbol != null)
-                {
-                    ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
-                    builder.Add(InterfaceIdentifierProperty, interfaceSymbol.Name);
-                    builder.Add(VariableIdentifierProperty, variableDeclarator.Identifier.ToString());
-
-                    // Don't offer codefix if object creation expression with non null arguments is used 
-                    ObjectCreationExpressionSyntax objectCreationExpression = variableDeclarator.
-                        DescendantNodes().
-                        OfType<ObjectCreationExpressionSyntax>().
-                        FirstOrDefault();
-                    if (objectCreationExpression != null && objectCreationExpression.ArgumentList?.Arguments.Any(a => a.ToString() != "null") == true)
+                    EqualsValueClauseSyntax initializer = variableDeclarator.Initializer;
+                    if (initializer == null)
                     {
-                        builder.Add(Constants.NoCodeFix, null);
+                        continue;
                     }
 
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, variableDeclarator.Identifier.GetLocation(), builder.ToImmutable()));
-                }
+                    // Do not create diagnostic for instances of types that implement corelib interfaces, many have extension methods that can't be mocked and most
+                    // are implemented in a fairly stable manner (e.g collection<T>s)
+                    ITypeSymbol typeSymbol = context.SemanticModel.GetTypeInfo(initializer.Value).Type;
+                    if (typeSymbol == null ||
+                        typeSymbol.ContainingNamespace == testClassContext.ClassSymbol.ContainingNamespace || // Type declared in test project
+                        typeSymbol.ToDisplayString().StartsWith("System.") ||
+                        typeSymbol.OriginalDefinition.ToDisplayString() == "Moq.Mock<T>" ||
+                        typeSymbol.Interfaces.Count() == 0 ||
+                        typeSymbol.AllInterfaces.Any(i => i.ToDisplayString().StartsWith("System.")))
+                    {
+                        continue;
+                    }
 
+                    INamedTypeSymbol interfaceSymbol = typeSymbol.Interfaces.FirstOrDefault();
+                    if (interfaceSymbol != null)
+                    {
+                        ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
+                        builder.Add(InterfaceIdentifierProperty, interfaceSymbol.Name);
+                        builder.Add(VariableIdentifierProperty, variableDeclarator.Identifier.ToString());
+
+                        // Don't offer codefix if object creation expression with non null arguments is used 
+                        ObjectCreationExpressionSyntax objectCreationExpression = variableDeclarator.
+                            DescendantNodes().
+                            OfType<ObjectCreationExpressionSyntax>().
+                            FirstOrDefault();
+                        if (objectCreationExpression != null && objectCreationExpression.ArgumentList?.Arguments.Any(a => a.ToString() != "null") == true)
+                        {
+                            builder.Add(Constants.NoCodeFix, null);
+                        }
+
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, variableDeclarator.Identifier.GetLocation(), builder.ToImmutable()));
+                    }
+                }
             }
         }
     }

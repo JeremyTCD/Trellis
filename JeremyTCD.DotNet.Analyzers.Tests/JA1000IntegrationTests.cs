@@ -35,6 +35,12 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticForResultVariableDeclarations()
+        {
+            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
         public void DiagnosticAnalyzer_DoesNotCreateDiagnosticForClassUnderTestDeclarations()
         {
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
