@@ -66,7 +66,7 @@ namespace JeremyTCD.DotNet.Analyzers
                     continue;
                 }
 
-                foreach (LocalDeclarationStatementSyntax localDeclaration in TestingHelper.GetTestSubjectDeclarations(testClassContext, methodDeclaration))
+                foreach (LocalDeclarationStatementSyntax localDeclaration in testSubjectDeclarations)
                 {
                     VariableDeclaratorSyntax variableDeclarator = localDeclaration.Declaration.Variables.First();
 
