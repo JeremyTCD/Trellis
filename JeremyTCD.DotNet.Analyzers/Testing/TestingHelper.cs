@@ -10,7 +10,33 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class TestingHelper
     {
-        //public static LocalDeclarationStatementSyntax GetResultVariableDeclaration(MethodDeclarationSyntax testMethod, )
+        public static IEnumerable<LocalDeclarationStatementSyntax> GetResultVariableDeclarations(MethodDeclarationSyntax testMethod,
+            List<LocalDeclarationStatementSyntax> testSubjectDeclarations)
+        {
+            IEnumerable<string> testSubjectVariableNames = testSubjectDeclarations.
+                Select(t => t.Declaration.Variables.First().Identifier.ValueText);
+
+            return testMethod.
+                DescendantNodes().
+                OfType<LocalDeclarationStatementSyntax>().
+                Where(l =>
+                {
+                    InvocationExpressionSyntax invocation = l.Declaration.Variables.FirstOrDefault()?.Initializer?.Value as InvocationExpressionSyntax;
+                    if (invocation == null)
+                    {
+                        return false;
+                    }
+
+                    MemberAccessExpressionSyntax memberAccessExpression = invocation.Expression as MemberAccessExpressionSyntax;
+                    if (memberAccessExpression == null)
+                    {
+                        return false;
+                    }
+
+                    return testSubjectVariableNames.
+                        Any(t => t.Equals(memberAccessExpression.Expression.ToString()));
+                });
+        }
 
         public static List<LocalDeclarationStatementSyntax> GetTestSubjectDeclarations(
             TestClassContext testClassContext,
@@ -25,7 +51,7 @@ namespace JeremyTCD.DotNet.Analyzers
             {
                 SyntaxToken variableToken = localDeclaration.Declaration.Variables.First().Identifier;
                 INamedTypeSymbol variableType = testClassContext.SemanticModel.GetTypeInfo(localDeclaration.Declaration.Type).Type as INamedTypeSymbol;
-                if(variableType == null)
+                if (variableType == null)
                 {
                     continue;
                 }
@@ -313,7 +339,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 OfType<AttributeSyntax>().
                 Where(a => semanticModel.GetSymbolInfo(a).Symbol.ToDisplayString() == "Xunit.MemberDataAttribute.MemberDataAttribute(string, params object[])").
                 FirstOrDefault();
-            if (attributeSyntax  == null)
+            if (attributeSyntax == null)
             {
                 return null;
             }

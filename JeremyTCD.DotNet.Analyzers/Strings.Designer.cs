@@ -407,7 +407,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test method test subject local variables must be named &quot;testSubject&quot;. If a method contains more than one such local variable, their named must end with &quot;TestSubject&quot;..
+        ///   Looks up a localized string similar to Test method test subject local variables must be named &quot;testSubject&quot;. If a method contains more than one such local variable, their names must end with &quot;TestSubject&quot;..
         /// </summary>
         public static string JA1012_MessageFormat {
             get {
@@ -421,6 +421,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1012_Title {
             get {
                 return ResourceManager.GetString("JA1012_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A test method has incorrectly named result local variables.
+        /// </summary>
+        public static string JA1013_Description {
+            get {
+                return ResourceManager.GetString("JA1013_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method result local variables must be named &quot;result&quot;. If a method contains more than one such local variable, their names must end with &quot;Result&quot;..
+        /// </summary>
+        public static string JA1013_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1013_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method result local variable names must be correctly named.
+        /// </summary>
+        public static string JA1013_Title {
+            get {
+                return ResourceManager.GetString("JA1013_Title", resourceCulture);
             }
         }
         
