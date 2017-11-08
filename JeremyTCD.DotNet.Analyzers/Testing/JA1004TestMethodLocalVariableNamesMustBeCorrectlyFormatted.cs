@@ -49,60 +49,44 @@ namespace JeremyTCD.DotNet.Analyzers
             foreach (MethodDeclarationSyntax methodDeclaration in testClassContext.
                 TestMethodDeclarations)
             {
+                List<LocalDeclarationStatementSyntax> testSubjectDeclarations = TestingHelper.GetTestSubjectDeclarations(testClassContext, methodDeclaration);
+
                 foreach (LocalDeclarationStatementSyntax localDeclaration in methodDeclaration.
                     DescendantNodes().
-                    OfType<LocalDeclarationStatementSyntax>())
+                    OfType<LocalDeclarationStatementSyntax>().
+                    Except(testSubjectDeclarations))
                 {
                     SyntaxToken variableToken = localDeclaration.Declaration.Variables.First().Identifier;
                     string variableName = variableToken.ValueText;
                     ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
                     ITypeSymbol variableType = context.SemanticModel.GetTypeInfo(localDeclaration.Declaration.Type).Type;
 
-                    if (variableType == testClassContext.ClassUnderTest)
+                    if (variableType.OriginalDefinition == mockGenericType) // Variable is of type Mock<T>
                     {
-                        if (variableName == "testSubject")
+                        // Variable has its behaviour verified
+                        if (methodDeclaration.
+                            DescendantNodes().
+                            OfType<MemberAccessExpressionSyntax>().
+                            Any(m => (m.Expression as IdentifierNameSyntax)?.Identifier.ValueText == variableName && m.Name.Identifier.ValueText == "Setup"))
                         {
-                            continue; // Correctly named "testSubject"
-                        }
-                        builder.Add(CorrectVariableNameProperty, "testSubject");
-                    }
-                    else if (variableType.OriginalDefinition == mockGenericType) // Variable is of type Mock<T>
-                    {
-                        // Variable is mock of type under test
-                        if ((variableType as INamedTypeSymbol).TypeArguments.First() == testClassContext.ClassUnderTest)
-                        {
-                            if (variableName == "testSubject")
+                            if (variableName.StartsWith("mock"))
                             {
-                                continue; // Correctly named "testSubject"
+                                continue; // Correctly starts with "mock"
                             }
-                            builder.Add(CorrectVariableNameProperty, "testSubject");
+                            builder.Add(
+                                CorrectVariableNameProperty,
+                                variableName.StartsWith("dummy") ? variableName.Replace("dummy", "mock") : $"mock{variableName.FirstCharUpper()}");
+                        }
+                        else if (variableName.StartsWith("dummy"))
+                        {
+                            continue; // Correctly starts with "dummy"
                         }
                         else
                         {
-                            // Variable has its behaviour verified
-                            if (methodDeclaration.
-                                DescendantNodes().
-                                OfType<MemberAccessExpressionSyntax>().
-                                Any(m => (m.Expression as IdentifierNameSyntax)?.Identifier.ValueText == variableName && m.Name.Identifier.ValueText == "Setup"))
-                            {
-                                if (variableName.StartsWith("mock"))
-                                {
-                                    continue; // Correctly starts with "mock"
-                                }
-                                builder.Add(
-                                    CorrectVariableNameProperty,
-                                    variableName.StartsWith("dummy") ? variableName.Replace("dummy", "mock") : $"mock{variableName.FirstCharUpper()}");
-                            }
-                            else if (variableName.StartsWith("dummy"))
-                            {
-                                continue; // Correctly starts with "dummy"
-                            }
-                            else
-                            {
-                                builder.Add(CorrectVariableNameProperty,
-                                    variableName.StartsWith("mock") ? variableName.Replace("mock", "dummy") : $"dummy{variableName.FirstCharUpper()}");
-                            }
+                            builder.Add(CorrectVariableNameProperty,
+                                variableName.StartsWith("mock") ? variableName.Replace("mock", "dummy") : $"dummy{variableName.FirstCharUpper()}");
                         }
+
                     }
                     else // TODO Not class under test or a mock
                     {

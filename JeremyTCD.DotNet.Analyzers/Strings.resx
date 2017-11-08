@@ -231,6 +231,15 @@
   <data name="JA1011_CodeFix_Title_CreateUnitTestClass" xml:space="preserve">
     <value>Create unit test class...</value>
   </data>
+  <data name="JA1012_Description" xml:space="preserve">
+    <value>A test method has incorrectly named test subject local variables.</value>
+  </data>
+  <data name="JA1012_MessageFormat" xml:space="preserve">
+    <value>Test method test subject local variables must be named "testSubject". If a method contains more than one such local variable, their named must end with "TestSubject".</value>
+  </data>
+  <data name="JA1012_Title" xml:space="preserve">
+    <value>Test method test subject local variable names must be correctly formatted.</value>
+  </data>
   <data name="JA1100_Description" xml:space="preserve">
     <value>A public property or method is not virtual.</value>
   </data>

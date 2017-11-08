@@ -10,6 +10,36 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class TestingHelper
     {
+        //public static LocalDeclarationStatementSyntax GetResultVariableDeclaration(MethodDeclarationSyntax testMethod, )
+
+        public static List<LocalDeclarationStatementSyntax> GetTestSubjectDeclarations(
+            TestClassContext testClassContext,
+            MethodDeclarationSyntax testMethodDeclaration)
+        {
+            INamedTypeSymbol mockGenericType = testClassContext.Compilation.GetTypeByMetadataName("Moq.Mock`1");
+            List<LocalDeclarationStatementSyntax> result = new List<LocalDeclarationStatementSyntax>();
+
+            foreach (LocalDeclarationStatementSyntax localDeclaration in testMethodDeclaration.
+                DescendantNodes().
+                OfType<LocalDeclarationStatementSyntax>())
+            {
+                SyntaxToken variableToken = localDeclaration.Declaration.Variables.First().Identifier;
+                INamedTypeSymbol variableType = testClassContext.SemanticModel.GetTypeInfo(localDeclaration.Declaration.Type).Type as INamedTypeSymbol;
+                if(variableType == null)
+                {
+                    continue;
+                }
+
+                if ((variableType == testClassContext.ClassUnderTest || variableType.OriginalDefinition == mockGenericType &&
+                    variableType.TypeArguments.First() == testClassContext.ClassUnderTest))
+                {
+                    result.Add(localDeclaration);
+                }
+            }
+
+            return result;
+        }
+
         public static FieldDeclarationSyntax CreateMockRepositoryFieldDeclaration(SyntaxGenerator syntaxGenerator)
         {
             SyntaxNode argumentMemberAccessExpression = syntaxGenerator.MemberAccessExpression(

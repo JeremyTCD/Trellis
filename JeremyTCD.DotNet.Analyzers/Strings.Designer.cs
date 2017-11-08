@@ -398,6 +398,33 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A test method has incorrectly named test subject local variables..
+        /// </summary>
+        public static string JA1012_Description {
+            get {
+                return ResourceManager.GetString("JA1012_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method test subject local variables must be named &quot;testSubject&quot;. If a method contains more than one such local variable, their named must end with &quot;TestSubject&quot;..
+        /// </summary>
+        public static string JA1012_MessageFormat {
+            get {
+                return ResourceManager.GetString("JA1012_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test method test subject local variable names must be correctly formatted..
+        /// </summary>
+        public static string JA1012_Title {
+            get {
+                return ResourceManager.GetString("JA1012_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A public property or method is not virtual..
         /// </summary>
         public static string JA1100_Description {

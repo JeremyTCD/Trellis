@@ -17,42 +17,6 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
-        public void DiagnosticAnalyzer_CreatesDiagnosticForClassUnderTestInstanceIfItsNameIsNotTestSubject()
-        {
-            DiagnosticResult expected = new DiagnosticResult
-            {
-                Id = JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.DiagnosticId,
-                Message =  string.Format(Strings.JA1004_MessageFormat, "classUnderTest"),
-                Severity = DiagnosticSeverity.Warning,
-                Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 10, 28) },
-                Properties = new Dictionary<string, string>()
-                    {
-                        { JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.CorrectVariableNameProperty, "testSubject"},
-                    }
-            };
-
-            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
-        }
-
-        [Fact]
-        public void DiagnosticAnalyzer_CreatesDiagnosticForMockOfClassUnderTestIfItsNameIsNotTestSubject()
-        {
-            DiagnosticResult expected = new DiagnosticResult
-            {
-                Id = JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.DiagnosticId,
-                Message = string.Format(Strings.JA1004_MessageFormat, "classUnderTest"),
-                Severity = DiagnosticSeverity.Warning,
-                Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 11, 34) },
-                Properties = new Dictionary<string, string>()
-                    {
-                        { JA1004TestMethodLocalVariableNamesMustBeCorrectlyFormatted.CorrectVariableNameProperty, "testSubject"},
-                    }
-            };
-
-            _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
-        }
-
-        [Fact]
         public void DiagnosticAnalyzer_CreatesDiagnosticForMockWithBehaviourIfItsNameDoesNotStartWithMock()
         {
             DiagnosticResult expected = new DiagnosticResult
@@ -86,18 +50,6 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
             };
 
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
-        }
-
-        [Fact]
-        public void CodeFixProvider_ReplacesNameOfMockClassUnderTestWithTestSubject()
-        {
-            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
-        }
-
-        [Fact]
-        public void CodeFixProvider_ReplacesNameOfClassUnderTestWithTestSubject()
-        {
-            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
         }
 
         [Fact]
