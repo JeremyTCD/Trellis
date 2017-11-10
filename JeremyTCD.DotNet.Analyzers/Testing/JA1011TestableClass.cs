@@ -40,7 +40,11 @@ namespace JeremyTCD.DotNet.Analyzers
                 return;
             }
 
-            ClassDeclarationSyntax classDeclaration = context.Node.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            ClassDeclarationSyntax classDeclaration = context.Node.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            if(classDeclaration == null)
+            {
+                return;
+            }
 
             context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
         }

@@ -24,7 +24,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         }
 
         [Fact]
-        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticsForTestsClasses()
+        public void DiagnosticAnalyzer_DoesNotCreateDiagnosticsForTestsClass()
         {
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
         }
