@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -35,21 +34,13 @@ namespace JeremyTCD.DotNet.Analyzers
 
         private void Handle(SyntaxNodeAnalysisContext context)
         {
-            CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)context.Node;
-            SemanticModel semanticModel = context.SemanticModel;
-
-            // Return if not in a test class
-            if (TestingHelper.ContainsTestClass(compilationUnit))
+            TestClassContext testClassContext = TestClassContextFactory.TryCreate(context);
+            if (testClassContext != null)
             {
                 return;
             }
 
-            // Get class declaration
-            ClassDeclarationSyntax classDeclaration = compilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if (classDeclaration == null)
-            {
-                return;
-            }
+            ClassDeclarationSyntax classDeclaration = context.Node.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
             context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDeclaration.Identifier.GetLocation()));
         }
