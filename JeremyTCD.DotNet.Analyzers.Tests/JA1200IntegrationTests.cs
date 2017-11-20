@@ -8,6 +8,8 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
     {
         private readonly SourcesHelper _sourcesHelper = new SourcesHelper(JA1200FactoryClassNamesMustBeCorrectlyFormatted.DiagnosticId);
         private readonly DiagnosticVerifier _diagnosticVerifier = new DiagnosticVerifier(new JA1200FactoryClassNamesMustBeCorrectlyFormatted());
+        private readonly CodeFixVerifier _codeFixVerifier = new CodeFixVerifier(new JA1200FactoryClassNamesMustBeCorrectlyFormatted(), 
+            new JA1200CodeFixProvider());
 
         [Fact]
         public void DiagnosticAnalyzer_CreatesDiagnosticIfFactoryClassNameIsIncorrectlyFormatted()
@@ -73,6 +75,12 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         public void DiagnosticAnalyzer_DoesNotCreateDiagnosticIfFactoryClassHasCreateMethodsThatProduceDifferentConcreteTypes()
         {
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder());
+        }
+
+        [Fact]
+        public void CodeFixProvider_RenamesFactoryClass()
+        {
+            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
         }
     }
 }
