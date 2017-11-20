@@ -9,6 +9,28 @@ namespace JeremyTCD.DotNet.Analyzers
 {
     public static class SyntaxHelper
     {
+        public static SyntaxNode SimplifyQualifiedNames(SyntaxNode node)
+        {
+            foreach (QualifiedNameSyntax qualifiedName in node.DescendantNodes().OfType<QualifiedNameSyntax>())
+            {
+                if (!MiscHelper.IsBuiltInType(qualifiedName))
+                {
+                    node = node.ReplaceNode(qualifiedName, qualifiedName.Right);
+                }
+            }
+
+            return node;
+        }
+
+        public static List<SyntaxNode> SortUsings(List<SyntaxNode> usingDirectives)
+        {
+            return usingDirectives.OrderBy(n =>
+            {
+                string name = (n as UsingDirectiveSyntax).Name.ToString();
+                return name.StartsWith("System") ? "_" : name; // System namespaces should come first
+            }).ToList();
+        }
+
         public static void TryInsertUsing(CompilationUnitSyntax compilationUnit, string namespaceName, DocumentEditor documentEditor)
         {
             if (!compilationUnit.Usings.Any(u => u.Name.ToString() == namespaceName))
@@ -19,7 +41,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
         public static SyntaxTrivia GetEndOfLineTrivia(SyntaxNode syntaxNode = null)
         {
-            if(syntaxNode == null)
+            if (syntaxNode == null)
             {
                 return SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\n");
             }
@@ -39,7 +61,7 @@ namespace JeremyTCD.DotNet.Analyzers
 
         public static SyntaxTrivia GetIndentationTrivia(SyntaxNode syntaxNode = null)
         {
-            if(syntaxNode == null)
+            if (syntaxNode == null)
             {
                 return SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "    ");
             }
