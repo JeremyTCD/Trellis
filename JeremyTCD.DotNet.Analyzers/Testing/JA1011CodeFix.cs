@@ -219,12 +219,7 @@ namespace JeremyTCD.DotNet.Analyzers
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Moq")));
             nodes.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Xunit")));
             nodes.AddRange(TestingHelper.CreateMissingUsingDirectives(namespaceSymbols, classDeclaration, namespaceDeclaration));
-
-            nodes = nodes.OrderBy(n =>
-            {
-                string name = (n as UsingDirectiveSyntax).Name.ToString();
-                return name.StartsWith("System") ? "_" : name; // System namespaces should come first
-            }).ToList();
+            nodes = SyntaxHelper.SortUsings(nodes);
             nodes.Add(namespaceDeclaration);
 
             return syntaxGenerator.CompilationUnit(nodes) as CompilationUnitSyntax;
