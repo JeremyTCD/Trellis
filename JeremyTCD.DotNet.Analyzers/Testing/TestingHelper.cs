@@ -567,12 +567,12 @@ namespace JeremyTCD.DotNet.Analyzers
 
         public static List<SyntaxNode> CreateMissingUsingDirectives(
             IEnumerable<INamespaceSymbol> namespaceSymbols,
-            ClassDeclarationSyntax classDeclaration,
+            TypeDeclarationSyntax typeDeclaration,
             NamespaceDeclarationSyntax namespaceDeclaration)
         {
             List<SyntaxNode> result = new List<SyntaxNode>();
 
-            IEnumerable<string> existingImportedNamespaces = classDeclaration.
+            IEnumerable<string> existingImportedNamespaces = typeDeclaration.
                 DescendantNodes().
                 OfType<UsingDirectiveSyntax>().
                 Select(u => u.Name.ToString());
