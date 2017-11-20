@@ -587,6 +587,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create factory infrastructure....
+        /// </summary>
+        public static string JA1204_CodeFix_Title_CreateFactoryInfrastructure {
+            get {
+                return ResourceManager.GetString("JA1204_CodeFix_Title_CreateFactoryInfrastructure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A factory class ceate method does not return produced class..
         /// </summary>
         public static string JA1204_Description {

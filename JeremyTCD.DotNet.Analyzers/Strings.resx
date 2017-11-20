@@ -294,6 +294,9 @@
   <data name="JA1203_Title" xml:space="preserve">
     <value>Factory class must implement factory interface.</value>
   </data>
+  <data name="JA1204_CodeFix_Title_CreateFactoryInfrastructure" xml:space="preserve">
+    <value>Create factory infrastructure...</value>
+  </data>
   <data name="JA1204_Description" xml:space="preserve">
     <value>A factory class ceate method does not return produced class.</value>
   </data>
