@@ -197,6 +197,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1004_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1004_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A test method mock local variable&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1004_Description {
