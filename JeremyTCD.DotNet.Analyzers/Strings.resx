@@ -214,13 +214,13 @@
     <value>MockRepository.Create must be used instead of Mock&lt;T&gt;'s constructor.</value>
   </data>
   <data name="JA1010_Description" xml:space="preserve">
-    <value>A test method's members are incorrectly ordered.</value>
+    <value>A test class' members are incorrectly ordered.</value>
   </data>
   <data name="JA1010_MessageFormat" xml:space="preserve">
-    <value>Test method members must be correctly ordered.</value>
+    <value>Test class members must be correctly ordered.</value>
   </data>
   <data name="JA1010_Title" xml:space="preserve">
-    <value>Test method members must be correctly ordered.</value>
+    <value>Test class members must be correctly ordered.</value>
   </data>
   <data name="JA1011_CodeFix_Title_CreateEndToEndTestClass" xml:space="preserve">
     <value>Create end to end test class...</value>
@@ -258,6 +258,9 @@
   <data name="JA1100_Title" xml:space="preserve">
     <value>Public properties and methods must be virtual.</value>
   </data>
+  <data name="JA1200_CodeFix_Title" xml:space="preserve">
+    <value>Rename to {0}...</value>
+  </data>
   <data name="JA1200_Description" xml:space="preserve">
     <value>A factory class's name is incorrectly formatted.</value>
   </data>
@@ -267,6 +270,9 @@
   <data name="JA1200_Title" xml:space="preserve">
     <value>Factory class names must be correctly formatted.</value>
   </data>
+  <data name="JA1201_CodeFix_Title" xml:space="preserve">
+    <value>Rename to {0}...</value>
+  </data>
   <data name="JA1201_Description" xml:space="preserve">
     <value>A factory interface's name is incorrectly formatted.</value>
   </data>
@@ -275,6 +281,12 @@
   </data>
   <data name="JA1201_Title" xml:space="preserve">
     <value>Factory interface names must be correctly formatted.</value>
+  </data>
+  <data name="JA1202_CodeFix_Title_CreateMethod" xml:space="preserve">
+    <value>Create Create method...</value>
+  </data>
+  <data name="JA1202_CodeFix_Title_RenameMethods" xml:space="preserve">
+    <value>Rename methods that return {0} to "Create"...</value>
   </data>
   <data name="JA1202_Description" xml:space="preserve">
     <value>A factory interface does not have any valid create methods.</value>

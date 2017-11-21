@@ -69,12 +69,12 @@ namespace JeremyTCD.DotNet.Analyzers
             Diagnostic diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
                 CodeAction.Create(
-                nameof(JA1201CodeFixProvider),
-                cancellationToken => GetTransformedDocumentAsync(
-                    expectedFactoryInterfaceName, 
-                    factoryInterfaceContext, 
-                    document, 
-                    cancellationToken),
+                    string.Format(Strings.JA1201_CodeFix_Title, expectedFactoryInterfaceName),
+                    cancellationToken => GetTransformedDocumentAsync(
+                        expectedFactoryInterfaceName,
+                        factoryInterfaceContext,
+                        document,
+                        cancellationToken),
                 nameof(JA1201CodeFixProvider)),
                 diagnostic
                 );

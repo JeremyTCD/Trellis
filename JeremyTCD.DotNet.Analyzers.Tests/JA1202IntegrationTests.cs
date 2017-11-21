@@ -52,13 +52,13 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         [Fact]
         public void CodeFixProvider_AddsCreateMethodIfNoExitingMethodReturnsTheProducedInterface()
         {
-            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
+            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder(), $"{nameof(JA1202CodeFixProvider)}CreateMethod");
         }
 
         [Fact]
         public void CodeFixProvider_RenamesMethodsThatReturnTheProducedIntefacesToCreate()
         {
-            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
+            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder(), $"{nameof(JA1202CodeFixProvider)}RenameMethods");
         }
     }
 }

@@ -344,7 +344,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A test method&apos;s members are incorrectly ordered..
+        ///   Looks up a localized string similar to A test class&apos; members are incorrectly ordered..
         /// </summary>
         public static string JA1010_Description {
             get {
@@ -353,7 +353,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test method members must be correctly ordered..
+        ///   Looks up a localized string similar to Test class members must be correctly ordered..
         /// </summary>
         public static string JA1010_MessageFormat {
             get {
@@ -362,7 +362,7 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test method members must be correctly ordered..
+        ///   Looks up a localized string similar to Test class members must be correctly ordered..
         /// </summary>
         public static string JA1010_Title {
             get {
@@ -479,6 +479,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1200_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1200_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A factory class&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1200_Description {
@@ -506,6 +515,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1201_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1201_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A factory interface&apos;s name is incorrectly formatted..
         /// </summary>
         public static string JA1201_Description {
@@ -529,6 +547,24 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1201_Title {
             get {
                 return ResourceManager.GetString("JA1201_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Create method....
+        /// </summary>
+        public static string JA1202_CodeFix_Title_CreateMethod {
+            get {
+                return ResourceManager.GetString("JA1202_CodeFix_Title_CreateMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename methods that return {0} to &quot;Create&quot;....
+        /// </summary>
+        public static string JA1202_CodeFix_Title_RenameMethods {
+            get {
+                return ResourceManager.GetString("JA1202_CodeFix_Title_RenameMethods", resourceCulture);
             }
         }
         

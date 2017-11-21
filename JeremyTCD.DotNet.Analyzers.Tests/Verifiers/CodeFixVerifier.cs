@@ -38,7 +38,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        public void VerifyFix(string sourcesFolder)
+        public void VerifyFix(string sourcesFolder, string equivalenceKey = null)
         {
             IEnumerable<string> beforeFiles = Directory.GetFiles($"{sourcesFolder}/Before");
             Dictionary<Document, List<Diagnostic>> diagnostics = DiagnosticHelper.GetDiagnosticsByDocument(beforeFiles, _diagnosticAnalyzer);
@@ -53,7 +53,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                     document,
                     _codeFixProvider,
                     FixAllScope.Document,
-                    _codeFixProvider.GetType().Name,
+                    equivalenceKey ?? _codeFixProvider.GetType().Name,
                     _codeFixProvider.FixableDiagnosticIds,
                     fixMultipleDiagnosticProvider,
                     CancellationToken.None);
