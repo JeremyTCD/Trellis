@@ -7,7 +7,8 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
     {
         private readonly SourcesHelper _sourcesHelper = new SourcesHelper(JA1201FactoryInterfaceNamesMustBeCorrectlyFormatted.DiagnosticId);
         private readonly DiagnosticVerifier _diagnosticVerifier = new DiagnosticVerifier(new JA1201FactoryInterfaceNamesMustBeCorrectlyFormatted());
-
+        private readonly CodeFixVerifier _codeFixVerifier = new CodeFixVerifier(new JA1201FactoryInterfaceNamesMustBeCorrectlyFormatted(),
+            new JA1201CodeFixProvider());
         [Fact]
         public void DiagnosticAnalyzer_DoesNotCreateDiagnosticsIfInterfaceIsNotAFactoryInterface()
         {
@@ -22,7 +23,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
 
         [Fact]
         public void DiagnosticAnalyzer_CreatesDiagnosticIfFactoryInterfaceNameDoesNotBeginWithAnExistingInterface()
-         {
+        {
             DiagnosticResult expected = new DiagnosticResult
             {
                 Id = JA1201FactoryInterfaceNamesMustBeCorrectlyFormatted.DiagnosticId,
@@ -46,6 +47,12 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
             };
 
             _diagnosticVerifier.VerifyDiagnostics(_sourcesHelper.GetSourcesFolder(), expected);
+        }
+
+        [Fact]
+        public void CodeFixProvider_RenamesFactoryInterface()
+        {
+            _codeFixVerifier.VerifyFix(_sourcesHelper.GetSourcesFolder());
         }
     }
 }
