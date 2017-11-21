@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,22 +27,23 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            foreach (Diagnostic diagnostic in context.Diagnostics)
+            Diagnostic diagnostic = context.Diagnostics.First();
+
+            if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
             {
-                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            nameof(JA1001CodeFixProvider),
-                            cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                            nameof(JA1001CodeFixProvider)),
-                        diagnostic);
-                }
+                string correctNamespace = diagnostic.Properties[JA1001TestClassNamespacesMustBeCorrectlyFormatted.CorrectNamespaceProperty];
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        string.Format(Strings.JA1001_CodeFix_Title, correctNamespace),
+                        cancellationToken => GetTransformedDocumentAsync(correctNamespace, context.Document, diagnostic, cancellationToken),
+                        nameof(JA1001CodeFixProvider)),
+                    diagnostic);
             }
+
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(string correctNamespace, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
@@ -50,8 +52,8 @@ namespace JeremyTCD.DotNet.Analyzers
             // Update namespace
             SyntaxNode oldQualifiedName = compilationUnit.FindNode(diagnostic.Location.SourceSpan);
             SyntaxNode newQualifiedName = CreateQualifiedName(
-                syntaxGenerator, 
-                diagnostic.Properties[JA1001TestClassNamespacesMustBeCorrectlyFormatted.CorrectNamespaceProperty].Split('.'));
+                syntaxGenerator,
+                correctNamespace.Split('.'));
             documentEditor.ReplaceNode(oldQualifiedName, newQualifiedName);
 
             return documentEditor.GetChangedDocument();
@@ -60,13 +62,13 @@ namespace JeremyTCD.DotNet.Analyzers
         public static QualifiedNameSyntax CreateQualifiedName(SyntaxGenerator syntaxGenerator, string[] names)
         {
             int numNames = names.Length;
-            if(numNames < 2)
+            if (numNames < 2)
             {
                 return null;
             }
 
             SyntaxNode result = syntaxGenerator.IdentifierName(names[0]);
-            for(int i = 1; i < numNames; i++)
+            for (int i = 1; i < numNames; i++)
             {
                 result = syntaxGenerator.QualifiedName(result, syntaxGenerator.IdentifierName(names[i]));
             }
