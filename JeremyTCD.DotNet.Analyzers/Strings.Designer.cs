@@ -236,6 +236,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use valid Create method....
+        /// </summary>
+        public static string JA1005_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1005_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A test subject is not instantiated by a valid create method..
         /// </summary>
         public static string JA1005_Description {
@@ -259,6 +268,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1005_Title {
             get {
                 return ResourceManager.GetString("JA1005_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1006_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1006_CodeFix_Title", resourceCulture);
             }
         }
         

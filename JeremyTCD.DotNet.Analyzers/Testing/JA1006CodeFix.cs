@@ -29,23 +29,23 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            foreach (Diagnostic diagnostic in context.Diagnostics)
+            Diagnostic diagnostic = context.Diagnostics.First();
+
+            if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
             {
-                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                        nameof(JA1006CodeFixProvider),
-                        cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1006CodeFixProvider)),
-                        diagnostic);
-                }
+                string newDataMethodName = diagnostic.Properties[JA1006TestDataMethodNamesMustBeCorrectlyFormatted.DataMethodNameProperty];
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                    string.Format(Strings.JA1006_CodeFix_Title, newDataMethodName),
+                    cancellationToken => GetTransformedDocumentAsync(newDataMethodName, context.Document, diagnostic, cancellationToken),
+                    nameof(JA1006CodeFixProvider)),
+                    diagnostic);
             }
 
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(string newDataMethodName, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
@@ -56,7 +56,6 @@ namespace JeremyTCD.DotNet.Analyzers
                 CompilationUnit.
                 FindNode(diagnostic.Location.SourceSpan) as MethodDeclarationSyntax;
             string oldDataMethodName = oldDataMethodDeclaration.Identifier.ValueText;
-            string newDataMethodName = diagnostic.Properties[JA1006TestDataMethodNamesMustBeCorrectlyFormatted.DataMethodNameProperty];
             MethodDeclarationSyntax newDataMethodDeclaration = oldDataMethodDeclaration.WithIdentifier(SyntaxFactory.Identifier(newDataMethodName).WithTriviaFrom(oldDataMethodDeclaration.Identifier));
             documentEditor.ReplaceNode(oldDataMethodDeclaration, newDataMethodDeclaration);
 
@@ -66,7 +65,7 @@ namespace JeremyTCD.DotNet.Analyzers
                 Where(i => i.ToString() == oldDataMethodName);
             SyntaxNode newIdentifier = syntaxGenerator.IdentifierName(newDataMethodName);
 
-            foreach(IdentifierNameSyntax referenceIdentifier in referenceIdentifiers)
+            foreach (IdentifierNameSyntax referenceIdentifier in referenceIdentifiers)
             {
                 documentEditor.ReplaceNode(referenceIdentifier, newIdentifier);
             }
