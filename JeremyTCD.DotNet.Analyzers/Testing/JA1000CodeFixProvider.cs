@@ -29,14 +29,15 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.Single();
+            Diagnostic diagnostic = context.Diagnostics.First();
 
             if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-            { 
+            {
+                string interfaceName = diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceNameProperty];
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                    nameof(JA1000CodeFixProvider),
-                    cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
+                    string.Format(Strings.JA1000_CodeFix_Title, interfaceName),
+                    cancellationToken => GetTransformedDocumentAsync(interfaceName, context.Document, diagnostic, cancellationToken),
                     nameof(JA1000CodeFixProvider)),
                     diagnostic);
             }
@@ -44,7 +45,7 @@ namespace JeremyTCD.DotNet.Analyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(string interfaceName, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             DocumentEditor documentEditor = await DocumentEditor.CreateAsync(document).ConfigureAwait(false);
             SyntaxGenerator syntaxGenerator = SyntaxGenerator.GetGenerator(document);
@@ -67,8 +68,8 @@ namespace JeremyTCD.DotNet.Analyzers
                 FirstAncestorOrSelf<LocalDeclarationStatementSyntax>();
             LocalDeclarationStatementSyntax newDummyVariableLocalDeclarationStatement = CreateDummyVariableLocalDeclarationStatement(
                 syntaxGenerator,
-                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty],
-                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty]);
+                diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableNameProperty],
+                interfaceName);
             documentEditor.ReplaceNode(oldDummyVariableLocalDeclarationStatement, newDummyVariableLocalDeclarationStatement);
 
             // Update references to local variable
@@ -76,7 +77,7 @@ namespace JeremyTCD.DotNet.Analyzers
             IEnumerable<IdentifierNameSyntax> dummyVariableIdentifierNames = testMethodDeclaration.
                 DescendantNodes().
                 OfType<IdentifierNameSyntax>().
-                Where(i => i.Identifier.ToString() == diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty]);
+                Where(i => i.Identifier.ToString() == diagnostic.Properties[JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableNameProperty]);
             foreach (IdentifierNameSyntax identifierName in dummyVariableIdentifierNames)
             {
                 // TODO doesn't work if identifierName is part of an argument with argument name stated

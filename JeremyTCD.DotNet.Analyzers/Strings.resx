@@ -120,6 +120,9 @@
   <data name="CategoryName_Testing" xml:space="preserve">
     <value>Testing</value>
   </data>
+  <data name="JA1000_CodeFix_Title" xml:space="preserve">
+    <value>Change type to Mock&lt;{0}&gt;...</value>
+  </data>
   <data name="JA1000_Description" xml:space="preserve">
     <value>A unit test method's dummy local variable is not a mock of its type's interface.</value>
   </data>

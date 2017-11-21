@@ -71,6 +71,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change type to Mock&lt;{0}&gt;....
+        /// </summary>
+        public static string JA1000_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1000_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A unit test method&apos;s dummy local variable is not a mock of its type&apos;s interface..
         /// </summary>
         public static string JA1000_Description {

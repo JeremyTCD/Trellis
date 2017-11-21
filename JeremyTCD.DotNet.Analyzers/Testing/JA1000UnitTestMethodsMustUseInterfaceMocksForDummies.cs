@@ -21,8 +21,8 @@ namespace JeremyTCD.DotNet.Analyzers
     public class JA1000UnitTestMethodsMustUseInterfaceMocksForDummies : DiagnosticAnalyzer
     {
         public static string DiagnosticId = nameof(JA1000UnitTestMethodsMustUseInterfaceMocksForDummies).Substring(0, 6);
-        public const string InterfaceIdentifierProperty = "InterfaceIdentifierProperty";
-        public const string VariableIdentifierProperty = "VariableIdentifierProeprty";
+        public const string InterfaceNameProperty = "InterfaceIdentifierProperty";
+        public const string VariableNameProperty = "VariableIdentifierProeprty";
 
         private static readonly DiagnosticDescriptor Descriptor =
             new DiagnosticDescriptor(DiagnosticId,
@@ -92,8 +92,8 @@ namespace JeremyTCD.DotNet.Analyzers
                     if (interfaceSymbol != null)
                     {
                         ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
-                        builder.Add(InterfaceIdentifierProperty, interfaceSymbol.Name);
-                        builder.Add(VariableIdentifierProperty, variableDeclarator.Identifier.ToString());
+                        builder.Add(InterfaceNameProperty, interfaceSymbol.Name);
+                        builder.Add(VariableNameProperty, variableDeclarator.Identifier.ToString());
 
                         // Don't offer codefix if object creation expression with non null arguments is used 
                         ObjectCreationExpressionSyntax objectCreationExpression = variableDeclarator.

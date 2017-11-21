@@ -69,8 +69,8 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 10, 29) },
                 Properties = new Dictionary<string, string>()
                 {
-                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty, "IShouldBeMocked"},
-                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty, "shouldBeMocked" }
+                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceNameProperty, "IShouldBeMocked"},
+                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableNameProperty, "shouldBeMocked" }
                 }
             };
 
@@ -88,8 +88,8 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 10, 29) },
                 Properties = new Dictionary<string, string>()
                 {
-                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceIdentifierProperty, "IShouldBeMocked"},
-                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableIdentifierProperty, "shouldBeMocked" },
+                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.InterfaceNameProperty, "IShouldBeMocked"},
+                    { JA1000UnitTestMethodsMustUseInterfaceMocksForDummies.VariableNameProperty, "shouldBeMocked" },
                     { Constants.NoCodeFix, null }
                 }
             };
