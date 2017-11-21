@@ -28,29 +28,28 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            foreach (Diagnostic diagnostic in context.Diagnostics)
+            Diagnostic diagnostic = context.Diagnostics.First();
+
+            if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
             {
-                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                        nameof(JA1012CodeFixProvider),
-                        cancellationToken => GetTransformedDocumentAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1012CodeFixProvider)),
-                        diagnostic);
-                }
+                string newVariableName = diagnostic.Properties[JA1012TestMethodTestSubjectLocalVariableNamesMustBeCorrectlyFormatted.CorrectVariableNameProperty];
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                    string.Format(Strings.JA1012_CodeFix_Title, newVariableName),
+                    cancellationToken => GetTransformedDocumentAsync(newVariableName, context.Document, diagnostic, cancellationToken),
+                    nameof(JA1012CodeFixProvider)),
+                    diagnostic);
             }
 
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(string newVariableName, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             VariableDeclaratorSyntax oldVariableDeclarator = compilationUnit.FindNode(diagnostic.Location.SourceSpan) as VariableDeclaratorSyntax;
             string oldVariableName = oldVariableDeclarator.Identifier.ValueText;
-            string newVariableName = diagnostic.Properties[JA1012TestMethodTestSubjectLocalVariableNamesMustBeCorrectlyFormatted.CorrectVariableNameProperty];
             VariableDeclaratorSyntax newVariableDeclarator = oldVariableDeclarator.WithIdentifier(SyntaxFactory.Identifier(newVariableName));
 
             // DocumentEditor does not work for VariableDeclartorSyntax - https://github.com/dotnet/roslyn/issues/8154

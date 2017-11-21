@@ -5,13 +5,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
@@ -31,17 +29,15 @@ namespace JeremyTCD.DotNet.Analyzers
         /// <inheritdoc/>
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            foreach (Diagnostic diagnostic in context.Diagnostics)
+            Diagnostic diagnostic = context.Diagnostics.First();
+            if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
             {
-                if (!diagnostic.Properties.ContainsKey(Constants.NoCodeFix))
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                        nameof(JA1007CodeFixProvider),
-                        cancellationToken => GetTransformedSolutionAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(JA1007CodeFixProvider)),
-                        diagnostic);
-                }
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                    Strings.JA1007_CodeFix_Title,
+                    cancellationToken => GetTransformedSolutionAsync(context.Document, diagnostic, cancellationToken),
+                    nameof(JA1007CodeFixProvider)),
+                    diagnostic);
             }
 
             return Task.CompletedTask;
@@ -111,7 +107,7 @@ namespace JeremyTCD.DotNet.Analyzers
             // Create new syntax root
             CompilationUnitSyntax newCompilationUnit = newTestClassContext.CompilationUnit.
                 ReplaceNode(
-                    newTestClassContext.ClassDeclaration, 
+                    newTestClassContext.ClassDeclaration,
                     newTestClassContext.ClassDeclaration.WithMembers(SyntaxFactory.List(orderedTestClassMembers)));
 
             return document.Project.Solution.WithDocumentSyntaxRoot(document.Id, newCompilationUnit);

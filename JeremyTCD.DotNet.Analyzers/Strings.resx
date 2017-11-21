@@ -201,6 +201,9 @@
   <data name="JA1006_Title" xml:space="preserve">
     <value>Test data method names must be correctly formatted.</value>
   </data>
+  <data name="JA1007_CodeFix_Title" xml:space="preserve">
+    <value>Fix exception tests...</value>
+  </data>
   <data name="JA1007_Description" xml:space="preserve">
     <value>A documented exception throwing outcome has no matching unit test.</value>
   </data>
@@ -209,6 +212,9 @@
   </data>
   <data name="JA1007_Title" xml:space="preserve">
     <value>Documented exception outcomes must have matching unit tests.</value>
+  </data>
+  <data name="JA1008_CodeFix_Title" xml:space="preserve">
+    <value>Add VerifyAll call...</value>
   </data>
   <data name="JA1008_Description" xml:space="preserve">
     <value>A test method that calls Mock&lt;T&gt;.Setup does not call MockRepository.VerifyAll.</value>
@@ -219,6 +225,9 @@
   <data name="JA1008_Title" xml:space="preserve">
     <value>Test method must call MockRepository.VerifyAll if it calls Mock&lt;T&gt;.Setup.</value>
   </data>
+  <data name="JA1009_CodeFix_Title" xml:space="preserve">
+    <value>Use MockRepository.Create...</value>
+  </data>
   <data name="JA1009_Description" xml:space="preserve">
     <value>Mock&lt;T&gt;() used instead of MockRepository.Create.</value>
   </data>
@@ -227,6 +236,9 @@
   </data>
   <data name="JA1009_Title" xml:space="preserve">
     <value>MockRepository.Create must be used instead of Mock&lt;T&gt;'s constructor.</value>
+  </data>
+  <data name="JA1010_CodeFix_Title" xml:space="preserve">
+    <value>Reorder members...</value>
   </data>
   <data name="JA1010_Description" xml:space="preserve">
     <value>A test class' members are incorrectly ordered.</value>
@@ -246,6 +258,9 @@
   <data name="JA1011_CodeFix_Title_CreateUnitTestClass" xml:space="preserve">
     <value>Create unit test class...</value>
   </data>
+  <data name="JA1012_CodeFix_Title" xml:space="preserve">
+    <value>Rename to {0}...</value>
+  </data>
   <data name="JA1012_Description" xml:space="preserve">
     <value>A test method has incorrectly named test subject local variables.</value>
   </data>
@@ -254,6 +269,9 @@
   </data>
   <data name="JA1012_Title" xml:space="preserve">
     <value>Test method test subject local variable names must be correctly formatted.</value>
+  </data>
+  <data name="JA1013_CodeFix_Title" xml:space="preserve">
+    <value>Rename to {0}...</value>
   </data>
   <data name="JA1013_Description" xml:space="preserve">
     <value>A test method has incorrectly named result local variables</value>

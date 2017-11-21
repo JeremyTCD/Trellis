@@ -308,6 +308,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix exception tests....
+        /// </summary>
+        public static string JA1007_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1007_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A documented exception throwing outcome has no matching unit test..
         /// </summary>
         public static string JA1007_Description {
@@ -331,6 +340,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1007_Title {
             get {
                 return ResourceManager.GetString("JA1007_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add VerifyAll call....
+        /// </summary>
+        public static string JA1008_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1008_CodeFix_Title", resourceCulture);
             }
         }
         
@@ -362,6 +380,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use MockRepository.Create....
+        /// </summary>
+        public static string JA1009_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1009_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Mock&lt;T&gt;() used instead of MockRepository.Create..
         /// </summary>
         public static string JA1009_Description {
@@ -385,6 +412,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1009_Title {
             get {
                 return ResourceManager.GetString("JA1009_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reorder members....
+        /// </summary>
+        public static string JA1010_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1010_CodeFix_Title", resourceCulture);
             }
         }
         
@@ -443,6 +479,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1012_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1012_CodeFix_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A test method has incorrectly named test subject local variables..
         /// </summary>
         public static string JA1012_Description {
@@ -466,6 +511,15 @@ namespace JeremyTCD.DotNet.Analyzers {
         public static string JA1012_Title {
             get {
                 return ResourceManager.GetString("JA1012_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename to {0}....
+        /// </summary>
+        public static string JA1013_CodeFix_Title {
+            get {
+                return ResourceManager.GetString("JA1013_CodeFix_Title", resourceCulture);
             }
         }
         
