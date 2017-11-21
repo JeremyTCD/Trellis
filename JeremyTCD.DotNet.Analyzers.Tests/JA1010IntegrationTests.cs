@@ -5,16 +5,16 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
 {
     public class JA1010IntegrationTests
     {
-        private readonly SourcesHelper _sourcesHelper = new SourcesHelper(JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId);
-        private readonly DiagnosticVerifier _diagnosticVerifier = new DiagnosticVerifier(new JA1010TestMethodMembersMustBeCorrectlyOrdered());
-        private readonly CodeFixVerifier _codeFixVerifier = new CodeFixVerifier(new JA1010TestMethodMembersMustBeCorrectlyOrdered(), new JA1010CodeFixProvider());
+        private readonly SourcesHelper _sourcesHelper = new SourcesHelper(JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId);
+        private readonly DiagnosticVerifier _diagnosticVerifier = new DiagnosticVerifier(new JA1010TestClassMembersMustBeCorrectlyOrdered());
+        private readonly CodeFixVerifier _codeFixVerifier = new CodeFixVerifier(new JA1010TestClassMembersMustBeCorrectlyOrdered(), new JA1010CodeFixProvider());
 
         [Fact]
         public void DiagnosticAnalyzer_CreatesDiagnosticIfFieldComesAfterConstructor()
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -28,7 +28,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -42,7 +42,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -56,7 +56,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -70,7 +70,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -84,7 +84,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -98,7 +98,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -112,7 +112,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 6, 18) }
@@ -126,7 +126,7 @@ namespace JeremyTCD.DotNet.Analyzers.Tests
         {
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId,
+                Id = JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId,
                 Message = Strings.JA1010_MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[] { new DiagnosticResultLocation("ClassUnderTestUnitTests.cs", 7, 18) }

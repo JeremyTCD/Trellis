@@ -1,19 +1,16 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 
 namespace JeremyTCD.DotNet.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class JA1010TestMethodMembersMustBeCorrectlyOrdered : DiagnosticAnalyzer
+    public class JA1010TestClassMembersMustBeCorrectlyOrdered : DiagnosticAnalyzer
     {
-        public static string DiagnosticId = nameof(JA1010TestMethodMembersMustBeCorrectlyOrdered).Substring(0, 6);
+        public static string DiagnosticId = nameof(JA1010TestClassMembersMustBeCorrectlyOrdered).Substring(0, 6);
         public const string InterfaceIdentifierProperty = "InterfaceIdentifierProperty";
         public const string VariableIdentifierProperty = "VariableIdentifierProeprty";
 

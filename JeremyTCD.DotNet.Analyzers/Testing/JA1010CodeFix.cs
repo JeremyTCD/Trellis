@@ -18,7 +18,7 @@ namespace JeremyTCD.DotNet.Analyzers
     {
         /// <inheritdoc/>
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(JA1010TestMethodMembersMustBeCorrectlyOrdered.DiagnosticId);
+            ImmutableArray.Create(JA1010TestClassMembersMustBeCorrectlyOrdered.DiagnosticId);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider()
